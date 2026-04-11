@@ -51,7 +51,7 @@ const sessionMiddleware = session({
     sameSite: 'lax'
   }
 });
-
+// main server code
 app.use(sessionMiddleware);
 io.engine.use(sessionMiddleware);
 app.set('io', io);
