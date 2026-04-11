@@ -8,6 +8,7 @@ const socketio = require('socket.io');
 const mongoose = require('mongoose');
 const expressLayouts = require('express-ejs-layouts');
 const session = require('express-session');
+const MongoStore = require('connect-mongo');
 const flash = require('connect-flash');
 const methodOverride = require('method-override');
 const path = require('path');
@@ -43,7 +44,12 @@ app.use(express.static(path.join(__dirname, 'public')));
 const sessionMiddleware = session({
   secret: process.env.SESSION_SECRET || 'secret',
   resave: false,
-  saveUninitialized: false
+  saveUninitialized: false,
+  store: MongoStore.create({ mongoUrl: process.env.MONGO_URI }),
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax'
+  }
 });
 
 app.use(sessionMiddleware);
@@ -95,4 +101,8 @@ require('./socket/sessionSocket')(io);
 
 const PORT = process.env.PORT || 5000;
 
-server.listen(PORT, console.log(`Server running on port ${PORT}`));
+if (require.main === module) {
+  server.listen(PORT, console.log(`Server running on port ${PORT}`));
+}
+
+module.exports = app;
