@@ -1,0 +1,80 @@
+<div class="row">
+    <div class="col-lg-10 m-auto">
+        <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+            <h2 class="fw-bold mb-0">Edit Note</h2>
+            <div class="d-flex gap-2">
+                <a href="/notes/<%= note._id %>" class="btn btn-light rounded-pill">
+                    <i data-feather="eye"></i> View
+                </a>
+                <a href="/notes" class="btn btn-light rounded-pill">
+                    <i data-feather="arrow-left"></i> Back
+                </a>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4 p-md-5">
+                <form id="note-form" action="/notes/<%= note._id %>?_method=PUT" method="POST" enctype="multipart/form-data" novalidate>
+                    <div class="row g-4">
+                        <div class="col-md-8">
+                            <div class="mb-4">
+                                <label for="title" class="form-label fw-bold small text-uppercase">Note Title</label>
+                                <input type="text" class="form-control form-control-lg border-0 bg-light" id="title" name="title" value="<%= note.title %>" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-4">
+                                <label for="priority" class="form-label fw-bold small text-uppercase">Priority</label>
+                                <select class="form-select border-0 bg-light" id="priority" name="priority">
+                                    <option value="Low" <%= note.priority === 'Low' ? 'selected' : '' %>>Low</option>
+                                    <option value="Medium" <%= note.priority === 'Medium' ? 'selected' : '' %>>Medium</option>
+                                    <option value="High" <%= note.priority === 'High' ? 'selected' : '' %>>High</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="mb-4">
+                                <label for="category" class="form-label fw-bold small text-uppercase">Category</label>
+                                <select class="form-select border-0 bg-light" id="category" name="category">
+                                    <option value="">No Category</option>
+                                    <% if(categories) { %>
+                                        <% categories.forEach(category => { %>
+                                            <option value="<%= category._id %>" <%= note.category && note.category.toString() === category._id.toString() ? 'selected' : '' %>><%= category.name %></option>
+                                        <% }) %>
+                                    <% } %>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="mb-4">
+                                <label for="file" class="form-label fw-bold small text-uppercase">Attachment</label>
+                                <% if(note.file) { %>
+                                    <div class="mb-2">
+                                        <small class="text-muted"><i data-feather="file" style="width: 12px;"></i> <%= note.file %></small>
+                                    </div>
+                                <% } %>
+                                <input class="form-control border-0 bg-light" type="file" id="file" name="file">
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <div class="mb-4">
+                                <label for="description" class="form-label fw-bold small text-uppercase">Description</label>
+                                <textarea class="form-control editor" id="description" name="description"><%= note.description %></textarea>
+                            </div>
+                        </div>
+
+                        <div class="col-12 text-end">
+                            <hr class="my-4">
+                            <button type="submit" class="btn btn-primary px-5 py-3 rounded-pill shadow">
+                                <i data-feather="check"></i> Update Note
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

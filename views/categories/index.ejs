@@ -1,0 +1,54 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold mb-0">Categories</h2>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header border-0 bg-transparent pt-4 px-4">
+                <h5 class="fw-bold mb-0">Add New Category</h5>
+            </div>
+            <div class="card-body p-4">
+                <form action="/categories" method="POST">
+                    <div class="mb-4">
+                        <label for="name" class="form-label small fw-bold text-uppercase text-muted">Category Name</label>
+                        <input type="text" class="form-control border-0 bg-light" id="name" name="name" placeholder="e.g. Work, Personal, Ideas" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 shadow-sm">
+                        <i data-feather="plus"></i> Create Category
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header border-0 bg-transparent pt-4 px-4">
+                <h5 class="fw-bold mb-0">Existing Categories</h5>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-3">
+                    <% if(categories.length > 0) { %>
+                        <% categories.forEach(category => { %>
+                            <div class="col-sm-6 col-lg-4">
+                                <div class="d-flex justify-content-between align-items-center bg-light p-3 rounded-4 border">
+                                    <span class="fw-medium text-main"><%= category.name %></span>
+                                    <form action="/categories/<%= category._id %>?_method=DELETE" method="POST" class="d-inline">
+                                        <button type="submit" class="btn btn-link p-0 text-danger" onclick="confirmDelete(event)">
+                                            <i data-feather="x-circle" style="width: 18px;"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        <% }) %>
+                    <% } else { %>
+                        <div class="col-12 text-center py-5 text-muted">
+                            <p>No categories found.</p>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

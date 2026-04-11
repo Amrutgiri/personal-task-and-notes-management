@@ -1,0 +1,72 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold mb-1">Global Search</h2>
+        <p class="text-muted mb-0">Find notes, tasks, and chat messages from one place.</p>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <form action="/search" method="GET">
+            <div class="input-group input-group-lg">
+                <span class="input-group-text bg-light border-0"><i data-feather="search"></i></span>
+                <input type="text" class="form-control bg-light border-0" name="q" value="<%= query %>" placeholder="Search across notes, tasks, and chat">
+                <button class="btn btn-primary" type="submit">Search</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header border-0 bg-transparent"><h5 class="fw-bold mb-0">Notes</h5></div>
+            <div class="card-body">
+                <% if (results.notes.length) { %>
+                    <% results.notes.forEach(note => { %>
+                        <a href="/notes/<%= note._id %>" class="search-result-item d-block text-decoration-none">
+                            <strong class="d-block mb-1"><%= note.title %></strong>
+                            <span class="text-muted small"><%= (note.description || '').replace(/<[^>]*>?/gm, '').slice(0, 120) %></span>
+                        </a>
+                    <% }) %>
+                <% } else { %>
+                    <p class="text-muted mb-0">No matching notes.</p>
+                <% } %>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header border-0 bg-transparent"><h5 class="fw-bold mb-0">Tasks</h5></div>
+            <div class="card-body">
+                <% if (results.tasks.length) { %>
+                    <% results.tasks.forEach(task => { %>
+                        <a href="/tasks/edit/<%= task._id %>" class="search-result-item d-block text-decoration-none">
+                            <strong class="d-block mb-1"><%= task.title %></strong>
+                            <span class="text-muted small"><%= task.status %> · <%= task.assignedTo ? task.assignedTo.name : 'Unassigned' %></span>
+                        </a>
+                    <% }) %>
+                <% } else { %>
+                    <p class="text-muted mb-0">No matching tasks.</p>
+                <% } %>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header border-0 bg-transparent"><h5 class="fw-bold mb-0">Chat</h5></div>
+            <div class="card-body">
+                <% if (results.chats.length) { %>
+                    <% results.chats.forEach(item => { %>
+                        <a href="/chat" class="search-result-item d-block text-decoration-none">
+                            <strong class="d-block mb-1"><%= item.sender ? item.sender.name : 'User' %></strong>
+                            <span class="text-muted small"><%= item.content ? item.content.slice(0, 120) : 'Attachment message' %></span>
+                        </a>
+                    <% }) %>
+                <% } else { %>
+                    <p class="text-muted mb-0">No matching chat messages.</p>
+                <% } %>
+            </div>
+        </div>
+    </div>
+</div>

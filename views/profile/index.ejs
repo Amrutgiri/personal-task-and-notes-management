@@ -1,0 +1,76 @@
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <!-- Profile Header Card -->
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+            <div class="card-header bg-primary p-5 text-center">
+                <!-- Profile Image with Edit Button -->
+                <div class="position-relative d-inline-block">
+                    <img src="<%= user.profileImage %>" 
+                         class="rounded-circle border border-4 border-white shadow-lg object-fit-cover" 
+                         style="width: 150px; height: 150px;" 
+                         alt="<%= user.name %>">
+                </div>
+                <h3 class="fw-bold text-white mt-3 mb-1"><%= user.name %></h3>
+                <p class="text-white text-opacity-75 mb-0">Member since <%= new Date(user.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) %></p>
+            </div>
+            <div class="card-body p-4 p-md-5">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <label class="small fw-bold text-muted text-uppercase mb-1 d-block">Full Name</label>
+                        <p class="fw-medium mb-0"><%= user.name %></p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="small fw-bold text-muted text-uppercase mb-1 d-block">Email Address</label>
+                        <p class="fw-medium mb-0"><%= user.email %></p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="small fw-bold text-muted text-uppercase mb-1 d-block">Phone Number</label>
+                        <p class="fw-medium mb-0"><%= user.phoneNumber || 'Not provided' %></p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="small fw-bold text-muted text-uppercase mb-1 d-block">Role</label>
+                        <p class="fw-medium mb-0 text-capitalize"><span class="badge bg-primary-subtle text-primary rounded-pill"><%= user.role %></span></p>
+                    </div>
+                    <div class="col-12">
+                        <label class="small fw-bold text-muted text-uppercase mb-1 d-block">Bio</label>
+                        <p class="fw-medium mb-0 text-muted"><%= user.bio || 'Tell us something about yourself...' %></p>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-3 mt-5">
+                    <a href="/profile/edit" class="btn btn-primary rounded-pill px-4 shadow-sm">
+                        <i data-feather="edit-2"></i> Edit Profile
+                    </a>
+                    <button class="btn btn-outline-secondary rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+                        <i data-feather="lock"></i> Change Password
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Change Password Modal -->
+<div class="modal fade" id="changePasswordModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold">Update Password</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="password-form" action="/profile/password?_method=PUT" method="POST" novalidate>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted text-uppercase">Current Password</label>
+                        <input type="password" name="currentPassword" class="form-control bg-light border-0 rounded-pill" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted text-uppercase">New Password</label>
+                        <input type="password" name="newPassword" class="form-control bg-light border-0 rounded-pill" required minlength="6">
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 shadow-sm mt-2">Save New Password</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

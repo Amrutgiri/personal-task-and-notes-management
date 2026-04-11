@@ -1,0 +1,72 @@
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-header bg-white p-4 border-bottom">
+                <div class="d-flex align-items-center">
+                    <a href="/profile" class="btn btn-light btn-sm rounded-circle me-3">
+                        <i data-feather="arrow-left"></i>
+                    </a>
+                    <h5 class="fw-bold mb-0">Edit Profile</h5>
+                </div>
+            </div>
+            <div class="card-body p-4 p-md-5">
+                <form id="profile-form" action="/profile?_method=PUT" method="POST" enctype="multipart/form-data" novalidate>
+                    <!-- Profile Image Upload -->
+                    <div class="text-center mb-5">
+                        <div class="position-relative d-inline-block">
+                            <img src="<%= user.profileImage %>" 
+                                 id="profile-preview"
+                                 class="rounded-circle border border-4 border-light shadow-sm object-fit-cover" 
+                                 style="width: 120px; height: 120px;" 
+                                 alt="Profile Preview">
+                            <label for="profileImage" class="btn btn-primary btn-sm rounded-circle position-absolute bottom-0 end-0 p-2 shadow">
+                                <i data-feather="camera" style="width: 16px; height: 16px;"></i>
+                                <input type="file" id="profileImage" name="profileImage" class="d-none" accept="image/*" onchange="previewImage(this)">
+                            </label>
+                        </div>
+                        <p class="small text-muted mt-2">Click the camera icon to change your photo</p>
+                    </div>
+
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-muted text-uppercase">Full Name</label>
+                            <input type="text" name="name" class="form-control bg-light border-0 rounded-pill" value="<%= user.name %>" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-muted text-uppercase">Email Address</label>
+                            <input type="email" class="form-control bg-light border-0 rounded-pill" value="<%= user.email %>" disabled>
+                            <small class="text-muted extra-small">Email cannot be changed.</small>
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label small fw-bold text-muted text-uppercase">Phone Number</label>
+                            <input type="text" name="phoneNumber" class="form-control bg-light border-0 rounded-pill" value="<%= user.phoneNumber %>" placeholder="+1 234 567 890">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-muted text-uppercase">Bio</label>
+                            <textarea name="bio" class="form-control bg-light border-0 rounded-4" rows="4" placeholder="Tell us something about yourself..."><%= user.bio %></textarea>
+                        </div>
+                    </div>
+
+                    <div class="mt-5">
+                        <button type="submit" class="btn btn-primary rounded-pill px-5 py-2 shadow-sm">
+                            Save Changes
+                        </button>
+                        <a href="/profile" class="btn btn-light rounded-pill px-4 py-2 ms-2">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function previewImage(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('profile-preview').src = e.target.result;
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+</script>

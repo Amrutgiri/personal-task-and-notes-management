@@ -1,0 +1,60 @@
+<% const activePage = typeof page !== 'undefined' ? page : ''; %>
+<nav id="sidebar">
+    <a href="/dashboard" class="sidebar-brand">
+        <div class="brand-icon bg-primary text-white rounded d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+            <i data-feather="zap" style="width: 18px; height: 18px;"></i>
+        </div>
+        <span class="sidebar-brand-text">ZenNotes</span>
+    </a>
+
+    <div class="nav-section flex-grow-1">
+        <small class="text-muted text-uppercase fw-bold mb-3 d-block nav-label" style="font-size: 0.65rem; letter-spacing: 1px;">Menu</small>
+        <ul class="nav flex-column">
+            <% if (canAccess(modules.DASHBOARD)) { %>
+                <li class="nav-item"><a class="nav-link <%= activePage === 'dashboard' ? 'active' : '' %>" href="/dashboard"><i data-feather="grid"></i><span class="nav-label">Dashboard</span></a></li>
+            <% } %>
+            <% if (canAccess(modules.NOTES)) { %>
+                <li class="nav-item"><a class="nav-link <%= activePage === 'notes' ? 'active' : '' %>" href="/notes"><i data-feather="file-text"></i><span class="nav-label">My Notes</span></a></li>
+            <% } %>
+            <% if (canAccess(modules.TASKS)) { %>
+                <li class="nav-item"><a class="nav-link <%= activePage === 'tasks' ? 'active' : '' %>" href="/tasks"><i data-feather="clipboard"></i><span class="nav-label">Tasks</span></a></li>
+            <% } %>
+            <% if (canAccess(modules.KANBAN)) { %>
+                <li class="nav-item"><a class="nav-link <%= activePage === 'kanban' ? 'active' : '' %>" href="/tasks/board"><i data-feather="columns"></i><span class="nav-label">Kanban Board</span></a></li>
+            <% } %>
+            <% if (canAccess(modules.ANALYTICS)) { %>
+                <li class="nav-item"><a class="nav-link <%= activePage === 'analytics' ? 'active' : '' %>" href="/analytics"><i data-feather="activity"></i><span class="nav-label">Analytics</span></a></li>
+            <% } %>
+            <% if (canAccess(modules.DAILY_NOTES)) { %>
+                <li class="nav-item"><a class="nav-link <%= activePage === 'daily-notes' ? 'active' : '' %>" href="/daily-notes"><i data-feather="check-circle"></i><span class="nav-label">Daily Work Log</span></a></li>
+                <li class="nav-item"><a class="nav-link <%= activePage === 'report' ? 'active' : '' %>" href="/daily-notes/report"><i data-feather="bar-chart-2"></i><span class="nav-label">Summary Report</span></a></li>
+            <% } %>
+            <% if (canAccess(modules.CATEGORIES)) { %>
+                <li class="nav-item"><a class="nav-link <%= activePage === 'categories' ? 'active' : '' %>" href="/categories"><i data-feather="folder"></i><span class="nav-label">Categories</span></a></li>
+            <% } %>
+            <% if (canAccess(modules.CHAT)) { %>
+                <li class="nav-item"><a class="nav-link <%= activePage === 'chat' ? 'active' : '' %>" href="/chat"><i data-feather="message-circle"></i><span class="nav-label">Chat</span></a></li>
+            <% } %>
+            <% if (canAccess(modules.PROFILE)) { %>
+                <li class="nav-item"><a class="nav-link <%= activePage === 'profile' ? 'active' : '' %>" href="/profile"><i data-feather="user"></i><span class="nav-label">Profile</span></a></li>
+            <% } %>
+            <% if (canAccess(modules.ADMIN_USERS)) { %>
+                <li class="nav-item"><a class="nav-link <%= activePage === 'admin-users' ? 'active' : '' %>" href="/admin/users"><i data-feather="shield"></i><span class="nav-label">User Roles</span></a></li>
+            <% } %>
+        </ul>
+
+        <small class="text-muted text-uppercase fw-bold mt-4 mb-3 d-block nav-label" style="font-size: 0.65rem; letter-spacing: 1px;">Storage</small>
+        <ul class="nav flex-column">
+            <% if (canAccess(modules.NOTES)) { %>
+                <li class="nav-item"><a class="nav-link" href="/notes/trash/view"><i data-feather="trash-2"></i><span class="nav-label">Trash</span></a></li>
+            <% } %>
+        </ul>
+    </div>
+
+    <div class="sidebar-footer mt-auto pt-4 border-top">
+        <a class="nav-link text-danger" href="/auth/logout">
+            <i data-feather="log-out"></i>
+            <span class="nav-label">Logout</span>
+        </a>
+    </div>
+</nav>

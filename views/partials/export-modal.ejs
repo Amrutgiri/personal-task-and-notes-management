@@ -1,0 +1,60 @@
+<div class="modal fade" id="<%= modalId %>" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header border-0 pb-0">
+        <div>
+          <h5 class="modal-title fw-bold mb-1">Export <%= title %></h5>
+          <p class="text-muted small mb-0">Download filtered data as Excel, CSV, or PDF.</p>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body pt-3">
+        <form action="/export" method="GET" class="export-form">
+          <input type="hidden" name="resource" value="<%= resource %>">
+
+          <div class="mb-3">
+            <label class="form-label small fw-bold text-muted text-uppercase">Format</label>
+            <select name="format" class="form-select bg-light border-0 rounded-pill">
+              <option value="xlsx">Excel (.xlsx)</option>
+              <option value="csv">CSV (.csv)</option>
+              <option value="pdf">PDF (.pdf)</option>
+            </select>
+          </div>
+
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label small fw-bold text-muted text-uppercase">From Date</label>
+              <input type="date" name="startDate" class="form-control bg-light border-0 rounded-pill" value="<%= values.startDate || '' %>">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-bold text-muted text-uppercase">To Date</label>
+              <input type="date" name="endDate" class="form-control bg-light border-0 rounded-pill" value="<%= values.endDate || '' %>">
+            </div>
+          </div>
+
+          <div class="row g-3 mt-1">
+            <div class="col-md-6">
+              <label class="form-label small fw-bold text-muted text-uppercase">Status</label>
+              <select name="status" class="form-select bg-light border-0 rounded-pill">
+                <option value="">All Status</option>
+                <% statuses.forEach((statusOption) => { %>
+                  <option value="<%= statusOption %>" <%= values.status === statusOption ? 'selected' : '' %>><%= statusOption %></option>
+                <% }) %>
+              </select>
+            </div>
+            <% if (showProjectField) { %>
+              <div class="col-md-6">
+                <label class="form-label small fw-bold text-muted text-uppercase"><%= projectFieldLabel || 'Project Name' %></label>
+                <input type="text" name="projectName" class="form-control bg-light border-0 rounded-pill" value="<%= values.projectName || '' %>" placeholder="<%= projectFieldPlaceholder || 'Enter project name' %>">
+              </div>
+            <% } %>
+          </div>
+
+          <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 shadow-sm mt-4">
+            <i data-feather="download" class="me-1"></i> Export Data
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

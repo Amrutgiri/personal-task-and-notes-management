@@ -1,0 +1,137 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold mb-0">My Notes</h2>
+    <div class="d-flex gap-2">
+        <button type="button" class="btn btn-outline-dark rounded-pill shadow-sm" data-bs-toggle="modal" data-bs-target="#notesExportModal">
+            <i data-feather="file-down"></i> <span class="d-none d-md-inline">Export</span>
+        </button>
+        <a href="/notes/add" class="btn btn-primary rounded-pill shadow-sm">
+            <i data-feather="plus"></i> <span class="d-none d-md-inline">Create Note</span>
+        </a>
+    </div>
+</div>
+
+<%- include('../partials/export-modal', {
+    modalId: 'notesExportModal',
+    title: 'Notes',
+    resource: 'notes',
+    statuses: ['active', 'archived', 'trash'],
+    showProjectField: true,
+    projectFieldLabel: 'Title or Keyword',
+    projectFieldPlaceholder: 'Filter by title or content',
+    values: {
+        startDate: '',
+        endDate: '',
+        status: '',
+        projectName: search
+    }
+}) %>
+
+<!-- Filters & Search -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body p-3">
+        <form action="/notes" method="GET" class="row g-3">
+            <div class="col-lg-4">
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-0"><i data-feather="search" style="width: 16px;"></i></span>
+                    <input type="text" class="form-control bg-light border-0" name="search" placeholder="Search notes..." value="<%= search %>">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <select class="form-select border-0 bg-light" name="category" onchange="this.form.submit()">
+                    <option value="">All Categories</option>
+                    <% if(categories) { %>
+                        <% categories.forEach(category => { %>
+                            <option value="<%= category._id %>" <%= selectedCategory == category._id ? 'selected' : '' %>><%= category.name %></option>
+                        <% }) %>
+                    <% } %>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select class="form-select border-0 bg-light" name="priority" onchange="this.form.submit()">
+                    <option value="">All Priorities</option>
+                    <option value="Low" <%= selectedPriority === 'Low' ? 'selected' : '' %>>Low</option>
+                    <option value="Medium" <%= selectedPriority === 'Medium' ? 'selected' : '' %>>Medium</option>
+                    <option value="High" <%= selectedPriority === 'High' ? 'selected' : '' %>>High</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-dark w-100">Filter</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Notes Grid -->
+<div class="notes-grid">
+    <% if(notes.length > 0) { %>
+        <% notes.forEach(note => { %>
+            <div class="card border-0 shadow-sm h-100 hover-shadow transition">
+                <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center pt-3 px-3">
+                    <span class="badge bg-secondary-subtle text-secondary small"><%= note.category ? note.category.name : 'Uncategorized' %></span>
+                    <div class="dropdown">
+                        <button class="btn btn-link p-0 text-muted shadow-none" data-bs-toggle="dropdown">
+                            <i data-feather="more-vertical" style="width: 16px;"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end border-0 shadow" style="border-radius: 12px;">
+                            <li><a class="dropdown-item py-2" href="/notes/<%= note._id %>"><i data-feather="eye" class="me-2" style="width: 14px;"></i> View</a></li>
+                            <li><a class="dropdown-item py-2" href="/notes/edit/<%= note._id %>"><i data-feather="edit-2" class="me-2" style="width: 14px;"></i> Edit</a></li>
+                            <% if (canAccess(modules.TASKS)) { %>
+                                <li>
+                                    <a class="dropdown-item py-2" href="/tasks/add?fromNote=<%= note._id %>">
+                                        <i data-feather="clipboard" class="me-2" style="width: 14px;"></i>
+                                        <%= note.convertedTask ? 'Create Another Task' : 'Convert to Task' %>
+                                    </a>
+                                </li>
+                            <% } %>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form action="/notes/trash/<%= note._id %>?_method=DELETE" method="POST">
+                                    <button type="submit" class="dropdown-item py-2 text-danger" onclick="confirmDelete(event)">
+                                        <i data-feather="trash-2" class="me-2" style="width: 14px;"></i> Move to Trash
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="card-body px-3 pb-3">
+                    <h5 class="fw-bold mb-2"><%= note.title %></h5>
+                    <!-- Remove HTML tags for preview -->
+                    <p class="text-muted small mb-3 text-truncate-3" style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; white-space: normal;">
+                        <%= note.description.replace(/<[^>]*>?/gm, '') %>
+                    </p>
+                    <div class="d-flex justify-content-between align-items-center mt-auto">
+                        <small class="text-muted" style="font-size: 0.7rem;">
+                            <i data-feather="clock" style="width: 12px; height: 12px;" class="me-1"></i>
+                            <%= new Date(note.updatedAt).toLocaleDateString() %>
+                        </small>
+                        <div class="d-flex align-items-center gap-2">
+                            <% if (note.convertedTask) { %>
+                                <span class="badge rounded-pill bg-primary-subtle text-primary" style="font-size: 0.65rem;">Task Ready</span>
+                            <% } %>
+                            <% 
+                                let pBadge = 'bg-success-subtle text-success';
+                                if(note.priority === 'High') pBadge = 'bg-danger-subtle text-danger';
+                                if(note.priority === 'Medium') pBadge = 'bg-warning-subtle text-warning';
+                            %>
+                            <span class="badge rounded-pill <%= pBadge %>" style="font-size: 0.65rem;"><%= note.priority %></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        <% }) %>
+    <% } else { %>
+        <div class="col-12 text-center py-5">
+            <div class="bg-light rounded-circle d-inline-flex p-4 mb-3">
+                <i data-feather="file-text" class="text-muted" style="width: 48px; height: 48px;"></i>
+            </div>
+            <h4 class="fw-bold">No notes found</h4>
+            <p class="text-muted">Try changing your filters or create a new note.</p>
+            <a href="/notes/add" class="btn btn-primary rounded-pill">Create My First Note</a>
+        </div>
+    <% } %>
+</div>
+
+<a href="/notes/add" class="fab">
+    <i data-feather="plus"></i>
+</a>

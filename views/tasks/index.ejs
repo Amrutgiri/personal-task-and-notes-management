@@ -1,0 +1,106 @@
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h2 class="fw-bold mb-1">Task Management</h2>
+        <p class="text-muted mb-0">Track assignments, priorities, deadlines, and execution flow.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="/tasks/board" class="btn btn-outline-dark">
+            <i data-feather="columns"></i> Board
+        </a>
+        <a href="/tasks/add" class="btn btn-primary">
+            <i data-feather="plus"></i> New Task
+        </a>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <form class="row g-3" action="/tasks" method="GET">
+            <div class="col-lg-4">
+                <input type="text" class="form-control bg-light border-0" name="search" placeholder="Search tasks..." value="<%= filters.search %>">
+            </div>
+            <div class="col-md-2">
+                <select class="form-select bg-light border-0" name="status">
+                    <option value="">All Statuses</option>
+                    <% taskStatuses.forEach(status => { %>
+                        <option value="<%= status %>" <%= filters.status === status ? 'selected' : '' %>><%= status %></option>
+                    <% }) %>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select class="form-select bg-light border-0" name="priority">
+                    <option value="">All Priorities</option>
+                    <% taskPriorities.forEach(priority => { %>
+                        <option value="<%= priority %>" <%= filters.priority === priority ? 'selected' : '' %>><%= priority %></option>
+                    <% }) %>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select class="form-select bg-light border-0" name="assignedTo">
+                    <option value="">Any Assignee</option>
+                    <% users.forEach(member => { %>
+                        <option value="<%= member._id %>" <%= filters.assignedTo === String(member._id) ? 'selected' : '' %>><%= member.name %></option>
+                    <% }) %>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-dark w-100" type="submit">Apply</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row g-4">
+    <% if (tasks.length) { %>
+        <% tasks.forEach(task => { %>
+            <div class="col-xl-4 col-md-6">
+                <div class="card border-0 shadow-sm h-100 task-card">
+                    <div class="card-body d-flex flex-column">
+                        <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                            <div>
+                                <span class="badge bg-primary-subtle text-primary"><%= task.status %></span>
+                                <span class="badge bg-light text-dark border ms-2"><%= task.priority %></span>
+                            </div>
+                            <a href="/tasks/edit/<%= task._id %>" class="btn btn-sm btn-light rounded-pill">
+                                <i data-feather="edit-2"></i>
+                            </a>
+                        </div>
+                        <h5 class="fw-bold mb-2"><%= task.title %></h5>
+                        <p class="text-muted small flex-grow-1"><%= (task.description || '').replace(/<[^>]*>?/gm, '').slice(0, 160) || 'No description added yet.' %></p>
+                        <div class="task-meta-grid mt-3">
+                            <div>
+                                <small class="text-muted d-block">Assignee</small>
+                                <strong><%= task.assignedTo ? task.assignedTo.name : 'Unassigned' %></strong>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block">Deadline</small>
+                                <strong><%= task.deadline ? new Date(task.deadline).toLocaleDateString() : 'Flexible' %></strong>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block">Created By</small>
+                                <strong><%= task.createdBy ? task.createdBy.name : 'System' %></strong>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block">Source</small>
+                                <strong><%= task.sourceNote ? 'Converted Note' : 'Direct Task' %></strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        <% }) %>
+    <% } else { %>
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center py-5">
+                    <div class="bg-light rounded-circle d-inline-flex p-4 mb-3">
+                        <i data-feather="clipboard" class="text-muted"></i>
+                    </div>
+                    <h4 class="fw-bold">No tasks found</h4>
+                    <p class="text-muted">Create a task or convert a note into one to get started.</p>
+                    <a href="/tasks/add" class="btn btn-primary">Create Task</a>
+                </div>
+            </div>
+        </div>
+    <% } %>
+</div>

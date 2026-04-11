@@ -1,0 +1,81 @@
+<div class="row">
+    <div class="col-lg-10 m-auto">
+        <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+            <h2 class="fw-bold mb-0">Add Daily Work Log</h2>
+            <a href="/daily-notes" class="btn btn-light rounded-pill">
+                <i data-feather="arrow-left"></i> Back
+            </a>
+        </div>
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4 p-md-5">
+                <form id="daily-note-form" action="/daily-notes" method="POST" novalidate>
+                    <div class="row g-4">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="date" class="form-label small fw-bold text-uppercase">Date</label>
+                                <input type="date" class="form-control border-0 bg-light" id="date" name="date" 
+                                    value="<%= typeof formData != 'undefined' ? formData.date : today %>" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="project_name" class="form-label small fw-bold text-uppercase">Project Name</label>
+                                <input type="text" class="form-control border-0 bg-light" id="project_name" name="project_name" placeholder="e.g. ZenNotes UI Redesign"
+                                    value="<%= typeof formData != 'undefined' ? formData.project_name : '' %>" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="status" class="form-label small fw-bold text-uppercase">Status</label>
+                                <select class="form-select border-0 bg-light" id="status" name="status" required>
+                                    <option value="Pending" <%= typeof formData != 'undefined' && formData.status === 'Pending' ? 'selected' : '' %>>Pending</option>
+                                    <option value="Started" <%= typeof formData != 'undefined' && formData.status === 'Started' ? 'selected' : '' %>>Started</option>
+                                    <option value="InProgress" <%= typeof formData != 'undefined' && formData.status === 'InProgress' ? 'selected' : '' %>>In Progress</option>
+                                    <option value="Completed" <%= typeof formData != 'undefined' && formData.status === 'Completed' ? 'selected' : '' %>>Completed</option>
+                                    <option value="Holiday" <%= typeof formData != 'undefined' && formData.status === 'Holiday' ? 'selected' : '' %>>Holiday</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label for="task_title" class="form-label small fw-bold text-uppercase">Task Title</label>
+                                <input type="text" class="form-control border-0 bg-light" id="task_title" name="task_title" placeholder="Main focus of this entry"
+                                    value="<%= typeof formData != 'undefined' ? formData.task_title : '' %>" required>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="day_start_description" class="form-label small fw-bold text-uppercase text-primary">Day Start / Planned</label>
+                                <textarea class="form-control editor" id="day_start_description" name="day_start_description" placeholder="Description of work planned"><%= typeof formData != 'undefined' ? formData.day_start_description : '' %></textarea>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="day_end_description" class="form-label small fw-bold text-uppercase text-success">Day End / Achievements</label>
+                                <textarea class="form-control editor" id="day_end_description" name="day_end_description" placeholder="What did you complete?"><%= typeof formData != 'undefined' ? formData.day_end_description : '' %></textarea>
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label for="remarks" class="form-label small fw-bold text-uppercase">Remarks</label>
+                                <textarea class="form-control border-0 bg-light" id="remarks" name="remarks" rows="2" placeholder="Any blockers or notes?"><%= typeof formData != 'undefined' ? formData.remarks : '' %></textarea>
+                            </div>
+                        </div>
+
+                        <div class="col-12 text-end mt-4">
+                            <hr class="mb-4">
+                            <button type="submit" class="btn btn-primary px-5 py-3 rounded-pill shadow">
+                                <i data-feather="save"></i> Save Work Log
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

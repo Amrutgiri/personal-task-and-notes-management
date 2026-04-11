@@ -1,0 +1,51 @@
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const Toast = Swal.mixin({
+    toast: true,
+    position: 'top-end',
+    showConfirmButton: false,
+    timer: 3000,
+    timerProgressBar: true,
+    didOpen: (toast) => {
+      toast.addEventListener('mouseenter', Swal.stopTimer)
+      toast.addEventListener('mouseleave', Swal.resumeTimer)
+    }
+  });
+
+  <% if(typeof errors != 'undefined' && errors.length > 0){ %>
+    <% errors.forEach(function(error){ %>
+      Toast.fire({
+        icon: 'warning',
+        title: '<%= error.msg %>'
+      });
+    <% }); %>
+  <% } %>
+
+  <% if(success_msg && success_msg.length > 0){ %>
+    <% success_msg.forEach(function(msg){ %>
+      Toast.fire({
+        icon: 'success',
+        title: '<%= msg %>'
+      });
+    <% }); %>
+  <% } %>
+
+  <% if(error_msg && error_msg.length > 0){ %>
+    <% error_msg.forEach(function(msg){ %>
+      Toast.fire({
+        icon: 'error',
+        title: '<%= msg %>'
+      });
+    <% }); %>
+  <% } %>
+
+  <% if(error && error.length > 0){ %>
+    <% error.forEach(function(msg){ %>
+      Toast.fire({
+        icon: 'error',
+        title: '<%= msg %>'
+      });
+    <% }); %>
+  <% } %>
+});
+</script>

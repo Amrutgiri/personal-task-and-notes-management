@@ -1,0 +1,76 @@
+<div class="row">
+    <div class="col-lg-10 m-auto">
+        <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+            <a href="/daily-notes" class="btn btn-light rounded-pill">
+                <i data-feather="arrow-left"></i> All Logs
+            </a>
+            <div class="d-flex gap-2">
+                <a href="/daily-notes/edit/<%= note._id %>" class="btn btn-primary rounded-pill">
+                    <i data-feather="edit-2"></i> Edit Log
+                </a>
+                <form action="/daily-notes/<%= note._id %>?_method=DELETE" method="POST">
+                    <button type="submit" class="btn btn-outline-danger rounded-pill" onclick="confirmDelete(event)">
+                        <i data-feather="trash-2"></i> Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-transparent border-0 pt-4 px-4 px-md-5">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <h1 class="fw-bold text-primary mb-1"><%= note.project_name %></h1>
+                        <h4 class="text-muted fw-normal"><%= note.task_title %></h4>
+                    </div>
+                    <% 
+                        let badgeClass = 'bg-secondary-subtle text-secondary';
+                        if(note.status === 'Started') badgeClass = 'bg-primary-subtle text-primary';
+                        if(note.status === 'InProgress') badgeClass = 'bg-warning-subtle text-warning';
+                        if(note.status === 'Completed') badgeClass = 'bg-success-subtle text-success';
+                        if(note.status === 'Holiday') badgeClass = 'bg-danger-subtle text-danger';
+                    %>
+                    <span class="badge rounded-pill <%= badgeClass %> fs-6 px-4 py-2"><%= note.status %></span>
+                </div>
+                <p class="text-muted small mb-0">
+                    <i data-feather="calendar" style="width: 14px; height: 14px;" class="me-1"></i>
+                    Log for <%= new Date(note.date).toDateString() %>
+                </p>
+            </div>
+            <hr class="mx-4 mx-md-5">
+            <div class="card-body p-4 p-md-5">
+                <div class="row g-5">
+                    <div class="col-md-6">
+                        <div class="mb-4">
+                            <h6 class="fw-bold text-uppercase small text-primary mb-3"><i data-feather="play" class="me-2" style="width: 14px;"></i> What was planned</h6>
+                            <div class="bg-light p-4 rounded-4 border-start border-4 border-primary shadow-none">
+                                <%- note.day_start_description %>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-4">
+                            <h6 class="fw-bold text-uppercase small text-success mb-3"><i data-feather="check-circle" class="me-2" style="width: 14px;"></i> Work Done / Achievements</h6>
+                            <div class="bg-light p-4 rounded-4 border-start border-4 border-success shadow-none">
+                                <%- note.day_end_description || '<span class="text-muted">No end-of-day update provided yet.</span>' %>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <% if(note.remarks) { %>
+                    <div class="mt-4">
+                        <h6 class="fw-bold text-uppercase small text-muted mb-3"><i data-feather="info" class="me-2" style="width: 14px;"></i> Remarks & Blockers</h6>
+                        <div class="bg-light p-4 rounded-4 border">
+                            <p class="mb-0 text-main"><%= note.remarks %></p>
+                        </div>
+                    </div>
+                <% } %>
+            </div>
+            <div class="card-footer bg-light border-0 py-3 px-4 px-md-5 d-flex justify-content-between text-muted small">
+                <span>Created: <%= new Date(note.createdAt).toLocaleString() %></span>
+                <span>Last Updated: <%= new Date(note.updatedAt).toLocaleString() %></span>
+            </div>
+        </div>
+    </div>
+</div>

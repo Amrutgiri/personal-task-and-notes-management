@@ -1,0 +1,405 @@
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+<div class="row g-0 chat-wrapper" style="height: calc(100vh - 110px); overflow: hidden;">
+    <!-- Chat Sidebar (Slack Style) -->
+    <div class="col-md-4 col-lg-3 border-end bg-white d-flex flex-column h-100">
+        <div class="p-3 border-bottom d-flex justify-content-between align-items-center flex-shrink-0">
+            <h5 class="fw-bold mb-0">Workspace</h5>
+            <div class="dropdown">
+                <button class="btn btn-light btn-sm rounded-circle" data-bs-toggle="dropdown">
+                    <i data-feather="plus"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                    <li><a class="dropdown-item py-2" href="#" data-bs-toggle="modal" data-bs-target="#privateChatModal"><i data-feather="user" class="me-2"></i> Private Chat</a></li>
+                    <li><a class="dropdown-item py-2" href="#" data-bs-toggle="modal" data-bs-target="#createGroupModal"><i data-feather="users" class="me-2"></i> Create Group</a></li>
+                    <li><a class="dropdown-item py-2" href="#" data-bs-toggle="modal" data-bs-target="#createChannelModal"><i data-feather="rss" class="me-2"></i> Create Channel</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Chat List -->
+        <div class="flex-grow-1 overflow-y-auto chat-list">
+            <% if(chats && chats.length > 0) { %>
+                <div class="list-group list-group-flush">
+                    <% chats.forEach(chat => { %>
+                        <a href="#" class="list-group-item list-group-item-action border-0 p-3 chat-item" 
+                           data-id="<%= chat._id %>" 
+                           data-type="<%= chat.type %>"
+                           data-name="<%= chat.type === 'private' ? (chat.participants.find(p => p._id.toString() !== user._id.toString())?.name || 'Deleted User') : chat.name %>">
+                            <div class="d-flex align-items-center">
+                                <div class="avatar bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center fw-bold me-3 flex-shrink-0" style="width: 40px; height: 40px;">
+                                    <% if(chat.type === 'private') { %>
+                                        <i data-feather="user" style="width: 18px;"></i>
+                                    <% } else if(chat.type === 'group') { %>
+                                        <i data-feather="hash" style="width: 18px;"></i>
+                                    <% } else { %>
+                                        <i data-feather="volume-2" style="width: 18px;"></i>
+                                    <% } %>
+                                </div>
+                                <div class="flex-grow-1 overflow-hidden">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <h6 class="fw-bold mb-0 text-truncate small">
+                                            <%= chat.type === 'private' ? (chat.participants.find(p => p._id.toString() !== user._id.toString())?.name || 'Deleted User') : chat.name %>
+                                        </h6>
+                                        <small class="text-muted flex-shrink-0" style="font-size: 0.65rem;">
+                                            <%= chat.updatedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) %>
+                                        </small>
+                                    </div>
+                                    <p class="text-muted extra-small mb-0 text-truncate last-msg-text">
+                                        <%= chat.last_message ? chat.last_message.content : 'No messages yet' %>
+                                    </p>
+                                </div>
+                            </div>
+                        </a>
+                    <% }) %>
+                </div>
+            <% } else { %>
+                <div class="text-center py-5 text-muted">
+                    <p class="small">No active chats.</p>
+                </div>
+            <% } %>
+        </div>
+    </div>
+
+    <!-- Chat Window -->
+    <div class="col-md-8 col-lg-9 bg-white d-flex flex-column h-100 position-relative" id="chat-drop-zone">
+        <!-- Drag & Drop Overlay -->
+        <div id="drop-overlay" class="position-absolute top-0 start-0 w-100 h-100 bg-primary bg-opacity-10 d-none d-flex align-items-center justify-content-center" style="z-index: 1050; pointer-events: none; border: 2px dashed var(--primary);">
+            <div class="text-center bg-white p-4 rounded-4 shadow">
+                <i data-feather="upload-cloud" class="text-primary mb-2" style="width: 48px; height: 48px;"></i>
+                <h5 class="fw-bold">Drop files here to upload</h5>
+            </div>
+        </div>
+
+        <div class="m-auto text-center text-muted" id="chat-window-placeholder">
+            <div class="bg-light rounded-circle d-inline-flex p-4 mb-3 shadow-sm">
+                <i data-feather="message-square" class="text-primary" style="width: 48px; height: 48px;"></i>
+            </div>
+            <h4 class="fw-bold">Your Messages</h4>
+            <p>Select a conversation to start chatting.</p>
+        </div>
+
+        <div class="d-none h-100 d-flex flex-column" id="active-chat-window">
+            <!-- Chat Header -->
+            <div class="p-3 border-bottom d-flex justify-content-between align-items-center flex-shrink-0">
+                <div class="d-flex align-items-center">
+                    <button class="btn btn-light btn-sm d-md-none me-2" id="back-to-list">
+                        <i data-feather="chevron-left"></i>
+                    </button>
+                    <div class="avatar bg-light text-primary rounded-3 d-flex align-items-center justify-content-center fw-bold me-3" style="width: 36px; height: 36px;" id="header-avatar">?</div>
+                    <div>
+                        <h6 class="fw-bold mb-0 small" id="header-chat-name">Chat</h6>
+                        <small class="text-muted extra-small" id="header-chat-status">Channel</small>
+                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-light btn-sm rounded-circle" data-bs-toggle="modal" data-bs-target="#codeModal" title="Send Code">
+                        <i data-feather="code" style="width: 16px;"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Messages Container -->
+            <div class="flex-grow-1 overflow-y-auto p-4 d-flex flex-column gap-4" id="message-container"></div>
+
+            <!-- Typing Indicator -->
+            <div class="px-4 py-2 small text-muted flex-shrink-0 d-none" id="typing-indicator">
+                <span id="typing-user" class="fw-bold">Someone</span> is typing...
+            </div>
+
+            <!-- Chat Input -->
+            <div class="p-3 bg-white flex-shrink-0">
+                <form id="chat-form" class="bg-light rounded-4 p-2 shadow-sm">
+                    <div class="d-flex gap-2 align-items-center">
+                        <div class="dropdown">
+                            <button type="button" class="btn btn-transparent text-muted rounded-circle p-2" data-bs-toggle="dropdown">
+                                <i data-feather="plus-circle"></i>
+                            </button>
+                            <ul class="dropdown-menu shadow border-0">
+                                <li><a class="dropdown-item py-2" href="#" onclick="document.getElementById('chat-file-input').click()"><i data-feather="file" class="me-2"></i> Upload File</a></li>
+                                <li><a class="dropdown-item py-2" href="#" data-bs-toggle="modal" data-bs-target="#codeModal"><i data-feather="code" class="me-2"></i> Send Snippet</a></li>
+                            </ul>
+                        </div>
+                        <input type="file" id="chat-file-input" class="d-none" multiple>
+                        <input type="text" id="chat-input" class="form-control border-0 bg-transparent shadow-none" placeholder="Message #channel" autocomplete="off">
+                        <button type="submit" class="btn btn-primary rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px;">
+                            <i data-feather="send" style="width: 16px;"></i>
+                        </button>
+                    </div>
+                </form>
+                <div class="extra-small text-muted mt-2 ms-2">
+                    <span class="fw-bold">Pro-tip:</span> Drag and drop files anywhere to upload!
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Send Code Modal -->
+<div class="modal fade" id="codeModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-bottom">
+                <h5 class="modal-title fw-bold">Send Code Snippet</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="send-code-form">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted text-uppercase">Language</label>
+                        <select name="language" class="form-select bg-light border-0 rounded-pill">
+                            <option value="javascript">JavaScript</option>
+                            <option value="html">HTML</option>
+                            <option value="css">CSS</option>
+                            <option value="python">Python</option>
+                            <option value="php">PHP</option>
+                            <option value="sql">SQL</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted text-uppercase">Code</label>
+                        <textarea name="code" class="form-control bg-light border-0 rounded-4 font-monospace" rows="10" placeholder="Paste your code here..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 shadow-sm">Send Code</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('modals') %>
+
+<script>
+    const socket = window.appSocket || io();
+    const currentUserId = "<%= user._id %>";
+    const currentUserName = "<%= user.name %>";
+    let activeChatId = null;
+    let activeChatType = null;
+
+    // Elements
+    const chatForm = document.getElementById('chat-form');
+    const chatInput = document.getElementById('chat-input');
+    const messageContainer = document.getElementById('message-container');
+    const chatListItems = document.querySelectorAll('.chat-item');
+    const activeChatWindow = document.getElementById('active-chat-window');
+    const chatPlaceholder = document.getElementById('chat-window-placeholder');
+    const typingIndicator = document.getElementById('typing-indicator');
+    const typingUser = document.getElementById('typing-user');
+    const dropZone = document.getElementById('chat-drop-zone');
+    const dropOverlay = document.getElementById('drop-overlay');
+
+    // Drag & Drop Handlers
+    window.addEventListener('dragenter', (e) => {
+        if (activeChatId) dropOverlay.classList.remove('d-none');
+    });
+
+    dropOverlay.addEventListener('dragleave', (e) => {
+        dropOverlay.classList.add('d-none');
+    });
+
+    window.addEventListener('dragover', (e) => e.preventDefault());
+
+    window.addEventListener('drop', async (e) => {
+        e.preventDefault();
+        dropOverlay.classList.add('d-none');
+        if (!activeChatId) return;
+
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            uploadFiles(files);
+        }
+    });
+
+    document.getElementById('chat-file-input').addEventListener('change', (e) => {
+        uploadFiles(e.target.files);
+    });
+
+    async function uploadFiles(files) {
+        for (const file of files) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const res = await fetch('/chat/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+
+                if (res.ok) {
+                    let type = 'file';
+                    if (file.type.startsWith('image/')) type = 'image';
+                    if (file.type.startsWith('video/')) type = 'video';
+
+                    socket.emit('send_message', {
+                        chatId: activeChatId,
+                        senderId: currentUserId,
+                        type: type,
+                        fileUrl: data.fileUrl,
+                        fileName: file.name,
+                        fileSize: (file.size / 1024 / 1024).toFixed(2) + ' MB'
+                    });
+                }
+            } catch (err) {
+                console.error('Upload failed:', err);
+            }
+        }
+    }
+
+    // Code Snippet Handler
+    document.getElementById('send-code-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const code = formData.get('code');
+        const lang = formData.get('language');
+
+        socket.emit('send_message', {
+            chatId: activeChatId,
+            senderId: currentUserId,
+            type: 'code',
+            content: code,
+            language: lang
+        });
+
+        bootstrap.Modal.getInstance(document.getElementById('codeModal')).hide();
+        e.target.reset();
+    });
+
+    // Chat Selection
+    chatListItems.forEach(item => {
+        item.addEventListener('click', () => {
+            selectChat(item.dataset.id, item.dataset.name, item.dataset.type);
+        });
+    });
+
+    async function selectChat(chatId, name, type) {
+        if (activeChatId) socket.emit('leave_chat', activeChatId);
+        activeChatId = chatId;
+        activeChatType = type;
+
+        document.querySelectorAll('.chat-item').forEach(el => el.classList.remove('active', 'bg-light'));
+        document.querySelector(`.chat-item[data-id="${chatId}"]`).classList.add('bg-light');
+
+        document.getElementById('header-chat-name').innerText = (type === 'private' ? '' : '#') + name;
+        document.getElementById('header-avatar').innerText = name.charAt(0).toUpperCase();
+        chatInput.placeholder = `Message ${(type === 'private' ? '@' : '#') + name}`;
+
+        chatPlaceholder.classList.add('d-none');
+        activeChatWindow.classList.remove('d-none');
+
+        messageContainer.innerHTML = '<div class="m-auto text-center"><div class="spinner-border text-primary spinner-border-sm"></div></div>';
+        
+        try {
+            const res = await fetch(`/chat/${chatId}/messages`);
+            const messages = await res.json();
+            messageContainer.innerHTML = '';
+            messages.forEach(msg => appendMessage(msg));
+            scrollToBottom();
+            socket.emit('join_chat', chatId);
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    // Message Utilities
+    function appendMessage(msg) {
+        const isMine = (msg.sender._id || msg.sender) === currentUserId;
+        const senderName = msg.sender.name || 'User';
+        const senderImg = msg.sender.profileImage || '/img/default-avatar.png';
+
+        let contentHtml = '';
+        if (msg.type === 'text') {
+            contentHtml = `<p class="mb-0 text-dark">${msg.content}</p>`;
+        } else if (msg.type === 'image') {
+            contentHtml = `<div class="message-media"><img src="${msg.file_url}" class="rounded-3 shadow-sm border mw-100" style="max-height: 300px;" onclick="window.open('${msg.file_url}')"></div>`;
+        } else if (msg.type === 'video') {
+            contentHtml = `<video src="${msg.file_url}" controls class="rounded-3 border mw-100" style="max-height: 300px;"></video>`;
+        } else if (msg.type === 'file') {
+            contentHtml = `<div class="file-box p-3 bg-light border rounded-3 d-flex align-items-center gap-3">
+                <div class="bg-primary text-white rounded-3 p-2"><i data-feather="file"></i></div>
+                <div class="overflow-hidden">
+                    <div class="fw-bold small text-truncate">${msg.file_name || 'Document'}</div>
+                    <div class="extra-small text-muted">${msg.file_size || 'Unknown size'}</div>
+                </div>
+                <a href="${msg.file_url}" target="_blank" class="btn btn-sm btn-light rounded-circle ms-auto"><i data-feather="download" style="width: 14px;"></i></a>
+            </div>`;
+        } else if (msg.type === 'code') {
+            const safeCode = msg.content.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            contentHtml = `<div class="code-block position-relative rounded-3 overflow-hidden">
+                <div class="bg-dark text-white px-3 py-1 d-flex justify-content-between align-items-center extra-small">
+                    <span>${msg.language}</span>
+                    <button class="btn btn-link text-white p-0 text-decoration-none" onclick="copyCode(this)"><i data-feather="copy" style="width: 12px;"></i> Copy</button>
+                </div>
+                <pre class="m-0"><code class="language-${msg.language}">${safeCode}</code></pre>
+            </div>`;
+        }
+
+        const msgHtml = `
+            <div class="message-row d-flex gap-3 ${isMine ? 'flex-row-reverse' : ''}">
+                <img src="${senderImg}" class="rounded-circle flex-shrink-0" style="width: 36px; height: 36px;">
+                <div class="message-content-wrapper d-flex flex-column ${isMine ? 'align-items-end' : ''}" style="max-width: 80%;">
+                    <div class="d-flex align-items-baseline gap-2 mb-1">
+                        <span class="fw-bold small">${senderName}</span>
+                        <span class="text-muted extra-small">${new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                    </div>
+                    <div class="message-bubble ${isMine ? 'mine' : ''}">
+                        ${contentHtml}
+                    </div>
+                </div>
+            </div>
+        `;
+        messageContainer.insertAdjacentHTML('beforeend', msgHtml);
+        if (msg.type === 'code') {
+            const lastCode = messageContainer.querySelector('.message-row:last-child pre code');
+            if (lastCode) hljs.highlightElement(lastCode);
+        }
+        if (typeof feather !== 'undefined') feather.replace();
+    }
+
+    function scrollToBottom() {
+        messageContainer.scrollTop = messageContainer.scrollHeight;
+    }
+
+    function copyCode(btn) {
+        const code = btn.closest('.code-block').querySelector('code').innerText;
+        navigator.clipboard.writeText(code);
+        const original = btn.innerHTML;
+        btn.innerHTML = 'Copied!';
+        setTimeout(() => btn.innerHTML = original, 2000);
+    }
+
+    // Socket listeners...
+    socket.on('receive_message', (message) => {
+        if (message.chat === activeChatId) {
+            appendMessage(message);
+            scrollToBottom();
+        }
+        // Update sidebar logic...
+    });
+
+    chatForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const content = chatInput.value.trim();
+        if (!content || !activeChatId) return;
+        socket.emit('send_message', { chatId: activeChatId, senderId: currentUserId, type: 'text', content });
+        chatInput.value = '';
+    });
+</script>
+
+<style>
+    .chat-wrapper { background: #f8f9fa; }
+    .extra-small { font-size: 0.7rem; }
+    .message-bubble { 
+        padding: 8px 12px; 
+        border-radius: 12px;
+        background: #f1f3f5;
+    }
+    .message-bubble.mine {
+        background: #eef2ff;
+        border: 1px solid #e0e7ff;
+    }
+    .code-block pre { padding: 1rem; background: #1e1e1e; color: #d4d4d4; font-size: 0.85rem; }
+    .message-row:hover { background: rgba(0,0,0,0.01); }
+    .avatar { border-radius: 8px; }
+</style>

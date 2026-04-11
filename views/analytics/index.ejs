@@ -1,0 +1,75 @@
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h2 class="fw-bold mb-1">Analytics Dashboard</h2>
+        <p class="text-muted mb-0">Measure throughput, productivity mix, and team activity.</p>
+    </div>
+    <span class="badge bg-primary-subtle text-primary px-3 py-2">Live from workspace data</span>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <small class="text-muted text-uppercase fw-bold">Users</small>
+                <h3 class="fw-bold mt-2 mb-0"><%= summary.totalUsers %></h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <small class="text-muted text-uppercase fw-bold">Tasks</small>
+                <h3 class="fw-bold mt-2 mb-0"><%= summary.totalTasks %></h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <small class="text-muted text-uppercase fw-bold">Completed</small>
+                <h3 class="fw-bold mt-2 mb-0"><%= summary.completedTasks %></h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <small class="text-muted text-uppercase fw-bold">Chat Activity</small>
+                <h3 class="fw-bold mt-2 mb-0"><%= summary.chatMessages %></h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header border-0 bg-transparent">
+                <h5 class="fw-bold mb-0">Tasks Completed</h5>
+            </div>
+            <div class="card-body">
+                <canvas data-chart="line" data-chart-labels='<%- JSON.stringify(completedTasks.map(item => item._id)) %>' data-chart-values='<%- JSON.stringify(completedTasks.map(item => item.total)) %>'></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header border-0 bg-transparent">
+                <h5 class="fw-bold mb-0">Productivity by Priority</h5>
+            </div>
+            <div class="card-body">
+                <canvas data-chart="doughnut" data-chart-labels='<%- JSON.stringify(productivity.map(item => item._id || "Unspecified")) %>' data-chart-values='<%- JSON.stringify(productivity.map(item => item.total)) %>'></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header border-0 bg-transparent">
+                <h5 class="fw-bold mb-0">User Activity</h5>
+            </div>
+            <div class="card-body">
+                <canvas data-chart="bar" data-chart-labels='<%- JSON.stringify(userActivity.map(item => item.name)) %>' data-chart-values='<%- JSON.stringify(userActivity.map(item => item.total)) %>' data-chart-secondary-values='<%- JSON.stringify(userActivity.map(item => item.completed)) %>'></canvas>
+            </div>
+        </div>
+    </div>
+</div>

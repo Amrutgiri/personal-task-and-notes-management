@@ -1,0 +1,107 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold mb-0">Summary Report</h2>
+    <button type="button" class="btn btn-light rounded-pill shadow-sm" onclick="window.print()">
+        <i data-feather="printer"></i> Print Report
+    </button>
+</div>
+
+<div class="card border-0 shadow-sm mb-4 no-print">
+    <div class="card-body p-4">
+        <form action="/daily-notes/report" method="GET" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label small fw-bold text-uppercase text-muted">From Date</label>
+                <input type="date" name="startDate" class="form-control border-0 bg-light rounded-pill" value="<%= startDate %>">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label small fw-bold text-uppercase text-muted">To Date</label>
+                <input type="date" name="endDate" class="form-control border-0 bg-light rounded-pill" value="<%= endDate %>">
+            </div>
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 shadow-sm">
+                    <i data-feather="refresh-cw"></i> Update Report
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm overflow-hidden">
+    <div class="card-header bg-transparent border-0 pt-4 px-4">
+        <h5 class="fw-bold mb-0 text-main">Task Completion Analytics</h5>
+    </div>
+    <div class="table-responsive">
+        <table class="table align-middle mb-0">
+            <thead class="bg-light">
+                <tr>
+                    <th class="ps-4 py-3 text-muted small fw-bold text-uppercase">Date</th>
+                    <th class="py-3 text-center text-muted small fw-bold text-uppercase">Tasks</th>
+                    <th class="py-3 text-center text-muted small fw-bold text-uppercase">Done</th>
+                    <th class="py-3 text-center text-muted small fw-bold text-uppercase">Pending</th>
+                    <th class="py-3 text-center text-muted small fw-bold text-uppercase">Holiday</th>
+                    <th class="pe-4 py-3 text-muted small fw-bold text-uppercase" style="width: 250px;">Progress</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% if(reportData.length > 0) { %>
+                    <% reportData.forEach(day => { %>
+                        <tr class="hover-bg-light">
+                            <td class="ps-4">
+                                <div class="fw-bold"><%= new Date(day._id).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' }) %></div>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-secondary-subtle text-secondary rounded-pill px-3"><%= day.totalTasks %></span>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-success-subtle text-success rounded-pill px-3"><%= day.completedTasks %></span>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-warning-subtle text-warning rounded-pill px-3"><%= day.pendingTasks %></span>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-danger-subtle text-danger rounded-pill px-3"><%= day.holiday %></span>
+                            </td>
+                            <td class="pe-4">
+                                <% 
+                                    let percent = day.totalTasks > 0 ? Math.round((day.completedTasks / day.totalTasks) * 100) : 0;
+                                    let barClass = percent === 100 ? 'bg-success' : (percent > 50 ? 'bg-primary' : 'bg-warning');
+                                %>
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="progress flex-grow-1" style="height: 8px; border-radius: 10px;">
+                                        <div class="progress-bar <%= barClass %>" role="progressbar" style="width: <%= percent %>%" aria-valuenow="<%= percent %>" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                    <span class="small fw-bold text-muted" style="min-width: 35px;"><%= percent %>%</span>
+                                </div>
+                            </td>
+                        </tr>
+                    <% }) %>
+                <% } else { %>
+                    <tr>
+                        <td colspan="6" class="text-center py-5 text-muted">
+                            <p>No analytics data available for this range.</p>
+                        </td>
+                    </tr>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+    @media print {
+        #sidebar, .no-print, .top-navbar, .fab {
+            display: none !important;
+        }
+        #main-wrapper {
+            margin-left: 0 !important;
+            padding: 0 !important;
+        }
+        .container-fluid {
+            width: 100% !important;
+            max-width: none !important;
+        }
+        .card {
+            border: 1px solid #eee !important;
+            box-shadow: none !important;
+        }
+    }
+</style>
