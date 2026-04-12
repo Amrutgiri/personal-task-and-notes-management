@@ -24,6 +24,12 @@ connectDB();
 const app = express();
 const server = http.createServer(app);
 const io = socketio(server);
+const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL === '1';
+
+if (isProduction) {
+  // Vercel serves the app behind a proxy, so secure cookies need trusted proxy headers.
+  app.set('trust proxy', 1);
+}
 
 // EJS
 app.use(expressLayouts);
@@ -45,9 +51,11 @@ const sessionMiddleware = session({
   secret: process.env.SESSION_SECRET || 'secret',
   resave: false,
   saveUninitialized: false,
+  proxy: isProduction,
   store: MongoStore.create({ mongoUrl: process.env.MONGO_URI }),
   cookie: {
-    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true,
+    secure: isProduction,
     sameSite: 'lax'
   }
 });
