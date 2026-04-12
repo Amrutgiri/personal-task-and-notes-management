@@ -26,6 +26,11 @@ const app = express();
 const server = http.createServer(app);
 const io = socketio(server);
 const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL === '1';
+const sessionStoreOptions = { mongoUrl: process.env.MONGO_URI };
+const sessionStore =
+  typeof MongoStore.create === 'function'
+    ? MongoStore.create(sessionStoreOptions)
+    : new MongoStore(sessionStoreOptions);
 
 if (isProduction) {
   // Vercel serves the app behind a proxy, so secure cookies need trusted proxy headers.
@@ -53,7 +58,7 @@ const sessionMiddleware = session({
   resave: false,
   saveUninitialized: false,
   proxy: isProduction,
-  store: MongoStore.create({ mongoUrl: process.env.MONGO_URI }),
+  store: sessionStore,
   cookie: {
     httpOnly: true,
     secure: isProduction,
