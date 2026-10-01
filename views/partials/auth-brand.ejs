@@ -1,0 +1,72 @@
+<aside class="auth-brand">
+    <div class="auth-blob auth-blob-1"></div>
+    <div class="auth-blob auth-blob-2"></div>
+    <div class="auth-grid"></div>
+
+    <a href="/" class="auth-brand-logo">
+        <span class="auth-logo-mark"><i data-feather="zap"></i></span>
+        <span>ZenNotes</span>
+    </a>
+
+    <div class="auth-brand-center">
+        <span class="auth-eyebrow"><i class="fa-solid fa-circle-check"></i> <%= typeof eyebrow != 'undefined' ? eyebrow : 'Smart workspace' %></span>
+        <h1><%= typeof headline != 'undefined' ? headline : 'Organize your work. Capture every idea.' %></h1>
+        <p class="auth-brand-sub"><%= typeof sub != 'undefined' ? sub : 'Notes, tasks, daily work logs and team chat — everything you need to stay productive, in one clean workspace.' %></p>
+
+        <ul class="auth-features">
+            <li>
+                <span class="feat-icon"><i class="fa-solid fa-note-sticky"></i></span>
+                <span><strong>Notes &amp; Tasks</strong> — capture ideas and turn them into action items.</span>
+            </li>
+            <li>
+                <span class="feat-icon"><i class="fa-solid fa-chart-column"></i></span>
+                <span><strong>Daily work log</strong> — track progress and sync to Google Sheets.</span>
+            </li>
+            <li>
+                <span class="feat-icon"><i class="fa-solid fa-shield-halved"></i></span>
+                <span><strong>Secure &amp; private</strong> — role-based access with single-session login.</span>
+            </li>
+        </ul>
+
+        <!-- Illustration: mock workspace preview -->
+        <div class="auth-visual" aria-hidden="true">
+            <div class="av-card av-notes">
+                <div class="av-card-head">
+                    <span class="av-badge av-badge-indigo"></span>
+                    <span class="av-card-title">Product Roadmap</span>
+                    <i class="fa-solid fa-thumbtack av-pin"></i>
+                </div>
+                <div class="av-line av-w90"></div>
+                <div class="av-line av-w70"></div>
+                <div class="av-line av-w50"></div>
+                <div class="av-chips">
+                    <span class="av-chip av-chip-indigo">Design</span>
+                    <span class="av-chip av-chip-amber">High</span>
+                </div>
+            </div>
+
+            <div class="av-card av-tasks">
+                <div class="av-card-head">
+                    <span class="av-badge av-badge-emerald"></span>
+                    <span class="av-card-title">Today’s tasks</span>
+                </div>
+                <div class="av-task done"><span class="av-check"><i class="fa-solid fa-check"></i></span><span class="av-line av-w80"></span></div>
+                <div class="av-task done"><span class="av-check"><i class="fa-solid fa-check"></i></span><span class="av-line av-w60"></span></div>
+                <div class="av-task"><span class="av-check"></span><span class="av-line av-w75"></span></div>
+                <div class="av-progress"><span style="width:68%"></span></div>
+                <div class="av-progress-label">68% completed</div>
+            </div>
+
+            <div class="av-stat">
+                <span class="av-stat-icon"><i class="fa-solid fa-arrow-trend-up"></i></span>
+                <span class="av-stat-text"><strong>+24%</strong> productivity this week</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="auth-brand-footer">
+        <span>&copy; <%= new Date().getFullYear() %> ZenNotes</span>
+        <span class="auth-footer-sep"></span>
+        <span>Personal Task &amp; Notes Management</span>
+    </div>
+</aside>

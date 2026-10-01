@@ -6,20 +6,31 @@
                 <h5 class="modal-title fw-bold">New Message</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
-                <div class="list-group list-group-flush">
-                    <% allUsers.forEach(u => { %>
-                        <a href="#" class="list-group-item list-group-item-action d-flex align-items-center py-3 create-private-chat" data-id="<%= u._id %>">
-                            <div class="avatar bg-light text-primary rounded-circle d-flex align-items-center justify-content-center fw-bold me-3" style="width: 40px; height: 40px;">
-                                <%= u.name.charAt(0).toUpperCase() %>
-                            </div>
-                            <div>
-                                <div class="fw-bold small"><%= u.name %></div>
-                                <div class="text-muted extra-small"><%= u.email %></div>
-                            </div>
+            <div class="modal-body pt-0">
+                <div class="pf-search">
+                    <i data-feather="search"></i>
+                    <input type="text" id="private-chat-search" class="form-control" placeholder="Search people by name or email" autocomplete="off">
+                </div>
+                <div class="list-group list-group-flush pf-list" id="private-chat-list">
+                    <% if (!allUsers || allUsers.length === 0) { %>
+                        <div class="pf-empty">No other users found.</div>
+                    <% } %>
+                    <% (allUsers || []).forEach(u => { %>
+                        <a href="#" class="list-group-item list-group-item-action create-private-chat"
+                           data-id="<%= u._id %>"
+                           data-search="<%= (u.name + ' ' + u.email).toLowerCase() %>">
+                            <span class="chat-avatar chat-tint-c<%= (String(u._id).length % 6) + 1 %>">
+                                <%= u.name.trim().split(/\s+/).slice(0, 2).map(w => w.charAt(0)).join('').toUpperCase() %>
+                            </span>
+                            <span class="pf-body">
+                                <span class="pf-name"><%= u.name %></span>
+                                <span class="pf-mail"><%= u.email %></span>
+                            </span>
+                            <span class="pf-go"><i data-feather="chevron-right"></i></span>
                         </a>
                     <% }) %>
                 </div>
+                <div class="pf-empty d-none" id="private-chat-noresult">No users match your search.</div>
             </div>
         </div>
     </div>
@@ -36,15 +47,19 @@
                 <form id="create-group-form">
                     <div class="mb-3">
                         <label class="form-label small fw-bold text-muted text-uppercase">Group Name</label>
-                        <input type="text" name="name" class="form-control bg-light border-0 rounded-pill" required>
+                        <input type="text" name="name" class="form-control bg-light border-0 rounded-pill" maxlength="60" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label small fw-bold text-muted text-uppercase">Select Members</label>
-                        <div class="bg-light rounded p-3 overflow-y-auto" style="max-height: 200px;">
-                            <% allUsers.forEach(u => { %>
-                                <div class="form-check mb-2">
+                        <div class="pf-list bg-light rounded-4 p-2 overflow-y-auto" style="max-height: 200px;">
+                            <% if (!allUsers || allUsers.length === 0) { %>
+                                <div class="pf-empty">No other users found.</div>
+                            <% } %>
+                            <% (allUsers || []).forEach(u => { %>
+                                <div class="form-check mb-1 pf-check">
                                     <input class="form-check-input" type="checkbox" name="participants" value="<%= u._id %>" id="user-<%= u._id %>">
                                     <label class="form-check-label small" for="user-<%= u._id %>"><%= u.name %></label>
+                                    <span class="pf-mail ms-auto"><%= u.email %></span>
                                 </div>
                             <% }) %>
                         </div>
@@ -67,7 +82,7 @@
                 <form id="create-channel-form">
                     <div class="mb-3">
                         <label class="form-label small fw-bold text-muted text-uppercase">Channel Name</label>
-                        <input type="text" name="name" class="form-control bg-light border-0 rounded-pill" required>
+                        <input type="text" name="name" class="form-control bg-light border-0 rounded-pill" maxlength="60" required>
                     </div>
                     <div class="mb-3">
                         <div class="form-check form-switch">
@@ -82,3 +97,22 @@
         </div>
     </div>
 </div>
+
+<script>
+(function () {
+    var input = document.getElementById('private-chat-search');
+    if (!input) return;
+    var list = document.getElementById('private-chat-list');
+    var noresult = document.getElementById('private-chat-noresult');
+    input.addEventListener('input', function () {
+        var q = input.value.trim().toLowerCase();
+        var shown = 0;
+        list.querySelectorAll('.create-private-chat').forEach(function (el) {
+            var hit = q === '' || (el.dataset.search || '').indexOf(q) !== -1;
+            el.classList.toggle('d-none', !hit);
+            if (hit) shown++;
+        });
+        if (noresult) noresult.classList.toggle('d-none', shown !== 0 || q === '');
+    });
+})();
+</script>

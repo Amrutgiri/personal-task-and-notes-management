@@ -1,10 +1,24 @@
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
-const { randomUUID } = require('crypto');
+const { randomUUID, randomBytes, createHash } = require('crypto');
 const User = require('../models/User');
 const Subscription = require('../models/Subscription');
 const { normalizeRole } = require('../config/permissions');
+const emailService = require('../services/emailService');
+
+const RESET_TOKEN_TTL_MINUTES = 30;
+const STRONG_PASSWORD = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+
+const hashToken = (token) => createHash('sha256').update(token).digest('hex');
+
+const hashPassword = async (plainPassword) => {
+  const salt = await bcrypt.genSalt(10);
+  return bcrypt.hash(plainPassword, salt);
+};
+
+const buildResetUrl = (req, token) =>
+  `${req.protocol}://${req.get('host')}/auth/reset-password/${token}`;
 
 const buildSessionUser = (user) => ({
   _id: user._id,
@@ -130,6 +144,9 @@ router.post('/login', async (req, res, next) => {
   // Simple validation
   if (!email || !password) {
     req.flash('error_msg', 'Please enter all fields');
+    if (email) {
+      req.flash('old_email', email);
+    }
     return res.redirect('/auth/login');
   }
 
@@ -138,6 +155,7 @@ router.post('/login', async (req, res, next) => {
 
     if (!user) {
       req.flash('error_msg', 'Email is not registered');
+      req.flash('old_email', email);
       return res.redirect('/auth/login');
     }
 
@@ -145,6 +163,7 @@ router.post('/login', async (req, res, next) => {
 
     if (!isMatch) {
       req.flash('error_msg', 'Password incorrect');
+      req.flash('old_email', email);
       return res.redirect('/auth/login');
     }
 
@@ -184,6 +203,131 @@ router.post('/login', async (req, res, next) => {
 
     req.flash('success_msg', 'You are now logged in');
     return res.redirect('/dashboard');
+  } catch (err) {
+    return next(err);
+  }
+});
+
+// Forgot Password Page
+router.get('/forgot-password', (req, res) => res.render('auth/forgot-password'));
+
+// Forgot Password Handle
+router.post('/forgot-password', async (req, res, next) => {
+  const { email } = req.body;
+  const genericMessage = 'If an account exists for that email, a password reset link has been sent.';
+
+  if (!email) {
+    req.flash('error_msg', 'Please enter your email address');
+    return res.redirect('/auth/forgot-password');
+  }
+
+  try {
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      req.flash('success_msg', genericMessage);
+      return res.redirect('/auth/forgot-password?sent=1');
+    }
+
+    const rawToken = randomBytes(32).toString('hex');
+    user.resetPasswordToken = hashToken(rawToken);
+    user.resetPasswordExpires = new Date(Date.now() + RESET_TOKEN_TTL_MINUTES * 60 * 1000);
+    await user.save();
+
+    const resetUrl = buildResetUrl(req, rawToken);
+
+    // Dev fallback: no SMTP configured -> show the link on screen instead of emailing
+    if (!emailService.isEmailConfigured()) {
+      return res.render('auth/forgot-password', {
+        devResetUrl: resetUrl,
+        devEmail: user.email,
+        ttl: RESET_TOKEN_TTL_MINUTES
+      });
+    }
+
+    try {
+      await emailService.sendPasswordResetEmail({
+        to: user.email,
+        name: user.name,
+        resetUrl,
+        expiresInMinutes: RESET_TOKEN_TTL_MINUTES
+      });
+      req.flash('success_msg', genericMessage);
+    } catch (err) {
+      console.error('Password reset email failed:', err.message);
+      req.flash('error_msg', 'We could not send the reset email. Please try again later.');
+    }
+
+    return res.redirect('/auth/forgot-password?sent=1');
+  } catch (err) {
+    return next(err);
+  }
+});
+
+// Reset Password Page
+router.get('/reset-password/:token', async (req, res, next) => {
+  try {
+    const user = await User.findOne({
+      resetPasswordToken: hashToken(req.params.token),
+      resetPasswordExpires: { $gt: new Date() }
+    });
+
+    if (!user) {
+      return res.render('auth/reset-password', { invalid: true });
+    }
+
+    return res.render('auth/reset-password', { token: req.params.token, invalid: false });
+  } catch (err) {
+    return next(err);
+  }
+});
+
+// Reset Password Handle
+router.post('/reset-password', async (req, res, next) => {
+  const { token, password, confirm_password } = req.body;
+  const backToForm = `/auth/reset-password/${token || ''}`;
+
+  if (!token) {
+    req.flash('error_msg', 'Invalid or expired reset link');
+    return res.redirect('/auth/forgot-password');
+  }
+
+  if (!password || !confirm_password) {
+    req.flash('error_msg', 'Please fill in both password fields');
+    return res.redirect(backToForm);
+  }
+
+  if (!STRONG_PASSWORD.test(password)) {
+    req.flash('error_msg', 'Password must be at least 8 characters with an uppercase letter, a lowercase letter and a number');
+    return res.redirect(backToForm);
+  }
+
+  if (password !== confirm_password) {
+    req.flash('error_msg', 'Passwords do not match');
+    return res.redirect(backToForm);
+  }
+
+  try {
+    const user = await User.findOne({
+      resetPasswordToken: hashToken(token),
+      resetPasswordExpires: { $gt: new Date() }
+    });
+
+    if (!user) {
+      req.flash('error_msg', 'This reset link is invalid or has expired');
+      return res.redirect('/auth/forgot-password');
+    }
+
+    user.password = await hashPassword(password);
+    user.resetPasswordToken = null;
+    user.resetPasswordExpires = null;
+    // Password reset => invalidate every active session and push subscription
+    user.current_session_token = null;
+    await user.save();
+    await Subscription.deleteMany({ user: user._id });
+
+    req.flash('success_msg', 'Password updated successfully. Please sign in.');
+    return res.redirect('/auth/login');
   } catch (err) {
     return next(err);
   }

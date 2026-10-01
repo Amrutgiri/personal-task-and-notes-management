@@ -1,13 +1,13 @@
-<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
-    <div>
-        <h2 class="fw-bold mb-1">Kanban Board</h2>
-        <p class="text-muted mb-0">Drag cards between columns to update the real task status instantly.</p>
+<div class="page-head">
+    <div class="page-head-text">
+        <h1>Kanban Board</h1>
+        <p>Drag cards between columns to update the real task status instantly.</p>
     </div>
-    <div class="d-flex gap-2">
-        <a href="/tasks" class="btn btn-light">
+    <div class="page-head-actions">
+        <a href="/tasks" class="btn btn-outline-secondary btn-sm">
             <i data-feather="list"></i> Task List
         </a>
-        <a href="/tasks/add" class="btn btn-primary">
+        <a href="/tasks/add" class="btn btn-primary btn-sm">
             <i data-feather="plus"></i> Add Task
         </a>
     </div>
@@ -32,8 +32,8 @@
                                 <i data-feather="edit-2" style="width: 16px;"></i>
                             </a>
                         </div>
-                        <h6 class="fw-bold mb-2"><%= task.title %></h6>
-                        <p class="text-muted small mb-3"><%= (task.description || '').replace(/<[^>]*>?/gm, '').slice(0, 110) || 'No description added.' %></p>
+                        <h6 class="fw-bold mb-1"><%= task.title %></h6>
+                        <p class="text-muted small mb-2"><%= (task.description || '').replace(/<[^>]*>?/gm, '').slice(0, 110) || 'No description added.' %></p>
                         <div class="small text-muted d-flex flex-column gap-1">
                             <span><i data-feather="user" style="width: 14px;"></i> <%= task.assignedTo ? task.assignedTo.name : 'Unassigned' %></span>
                             <span><i data-feather="calendar" style="width: 14px;"></i> <%= task.deadline ? new Date(task.deadline).toLocaleDateString() : 'No deadline' %></span>

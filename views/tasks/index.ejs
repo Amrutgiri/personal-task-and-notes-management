@@ -1,13 +1,13 @@
-<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
-    <div>
-        <h2 class="fw-bold mb-1">Task Management</h2>
-        <p class="text-muted mb-0">Track assignments, priorities, deadlines, and execution flow.</p>
+<div class="page-head">
+    <div class="page-head-text">
+        <h1>Task Management</h1>
+        <p>Track assignments, priorities, deadlines, and execution flow.</p>
     </div>
-    <div class="d-flex gap-2">
-        <a href="/tasks/board" class="btn btn-outline-dark">
+    <div class="page-head-actions">
+        <a href="/tasks/board" class="btn btn-outline-secondary btn-sm">
             <i data-feather="columns"></i> Board
         </a>
-        <a href="/tasks/add" class="btn btn-primary">
+        <a href="/tasks/add" class="btn btn-primary btn-sm">
             <i data-feather="plus"></i> New Task
         </a>
     </div>
@@ -15,7 +15,7 @@
 
 <div class="card border-0 shadow-sm mb-4">
     <div class="card-body">
-        <form class="row g-3" action="/tasks" method="GET">
+        <form class="row g-2 align-items-center" action="/tasks" method="GET">
             <div class="col-lg-4">
                 <input type="text" class="form-control bg-light border-0" name="search" placeholder="Search tasks..." value="<%= filters.search %>">
             </div>
@@ -50,24 +50,24 @@
     </div>
 </div>
 
-<div class="row g-4">
+<div class="row g-3">
     <% if (tasks.length) { %>
         <% tasks.forEach(task => { %>
             <div class="col-xl-4 col-md-6">
                 <div class="card border-0 shadow-sm h-100 task-card">
                     <div class="card-body d-flex flex-column">
-                        <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                        <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
                             <div>
                                 <span class="badge bg-primary-subtle text-primary"><%= task.status %></span>
                                 <span class="badge bg-light text-dark border ms-2"><%= task.priority %></span>
                             </div>
-                            <a href="/tasks/edit/<%= task._id %>" class="btn btn-sm btn-light rounded-pill">
+                            <a href="/tasks/edit/<%= task._id %>" class="btn btn-sm btn-light">
                                 <i data-feather="edit-2"></i>
                             </a>
                         </div>
-                        <h5 class="fw-bold mb-2"><%= task.title %></h5>
+                        <h5 class="fw-bold mb-1"><%= task.title %></h5>
                         <p class="text-muted small flex-grow-1"><%= (task.description || '').replace(/<[^>]*>?/gm, '').slice(0, 160) || 'No description added yet.' %></p>
-                        <div class="task-meta-grid mt-3">
+                        <div class="task-meta-grid mt-2">
                             <div>
                                 <small class="text-muted d-block">Assignee</small>
                                 <strong><%= task.assignedTo ? task.assignedTo.name : 'Unassigned' %></strong>

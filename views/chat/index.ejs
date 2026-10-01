@@ -1,139 +1,135 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 
-<div class="row g-0 chat-wrapper" style="height: calc(100vh - 110px); overflow: hidden;">
-    <!-- Chat Sidebar (Slack Style) -->
-    <div class="col-md-4 col-lg-3 border-end bg-white d-flex flex-column h-100">
-        <div class="p-3 border-bottom d-flex justify-content-between align-items-center flex-shrink-0">
-            <h5 class="fw-bold mb-0">Workspace</h5>
+<%
+    const PALETTE = ['c1','c2','c3','c4','c5','c6'];
+    const tintFor = (seed) => {
+        const s = String(seed || '');
+        let h = 0;
+        for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+        return PALETTE[h % PALETTE.length];
+    };
+    const initials = (name) => String(name || '?').trim().split(/\s+/).slice(0, 2).map(w => w.charAt(0)).join('').toUpperCase();
+    const otherOf = (chat) => (chat.type === 'private' ? chat.participants.find(p => String(p._id) !== String(user._id)) : null);
+    const displayName = (chat) => chat.type === 'private' ? (otherOf(chat)?.name || 'Unknown user') : (chat.name || 'Unnamed');
+    const displayEmail = (chat) => chat.type === 'private' ? (otherOf(chat)?.email || '') : (chat.participants.length + ' members');
+    const avatarOf = (chat) => chat.type === 'private' ? (otherOf(chat)?.profileImage || '') : '';
+    const timeOf = (d) => { try { return new Date(d).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); } catch (e) { return ''; } };
+%>
+
+<div class="chat-page" id="chat-page">
+    <!-- Sidebar -->
+    <aside class="chat-side" id="chat-side">
+        <div class="chat-side-head">
+            <div class="chat-side-title">
+                <h6>Messages</h6>
+                <span class="chat-count" id="chat-count"><%= chats ? chats.length : 0 %></span>
+            </div>
             <div class="dropdown">
-                <button class="btn btn-light btn-sm rounded-circle" data-bs-toggle="dropdown">
-                    <i data-feather="plus"></i>
+                <button class="icon-btn icon-btn-sm" data-bs-toggle="dropdown" aria-label="New conversation">
+                    <i data-feather="edit-3"></i>
                 </button>
-                <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                    <li><a class="dropdown-item py-2" href="#" data-bs-toggle="modal" data-bs-target="#privateChatModal"><i data-feather="user" class="me-2"></i> Private Chat</a></li>
-                    <li><a class="dropdown-item py-2" href="#" data-bs-toggle="modal" data-bs-target="#createGroupModal"><i data-feather="users" class="me-2"></i> Create Group</a></li>
-                    <li><a class="dropdown-item py-2" href="#" data-bs-toggle="modal" data-bs-target="#createChannelModal"><i data-feather="rss" class="me-2"></i> Create Channel</a></li>
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm chat-new-menu">
+                    <li><button class="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#privateChatModal"><i data-feather="user"></i><span>Private Chat</span></button></li>
+                    <li><button class="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#createGroupModal"><i data-feather="users"></i><span>Create Group</span></button></li>
+                    <li><button class="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#createChannelModal"><i data-feather="rss"></i><span>Create Channel</span></button></li>
                 </ul>
             </div>
         </div>
 
-        <!-- Chat List -->
-        <div class="flex-grow-1 overflow-y-auto chat-list">
-            <% if(chats && chats.length > 0) { %>
-                <div class="list-group list-group-flush">
-                    <% chats.forEach(chat => { %>
-                        <a href="#" class="list-group-item list-group-item-action border-0 p-3 chat-item" 
-                           data-id="<%= chat._id %>" 
-                           data-type="<%= chat.type %>"
-                           data-name="<%= chat.type === 'private' ? (chat.participants.find(p => p._id.toString() !== user._id.toString())?.name || 'Deleted User') : chat.name %>">
-                            <div class="d-flex align-items-center">
-                                <div class="avatar bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center fw-bold me-3 flex-shrink-0" style="width: 40px; height: 40px;">
-                                    <% if(chat.type === 'private') { %>
-                                        <i data-feather="user" style="width: 18px;"></i>
-                                    <% } else if(chat.type === 'group') { %>
-                                        <i data-feather="hash" style="width: 18px;"></i>
-                                    <% } else { %>
-                                        <i data-feather="volume-2" style="width: 18px;"></i>
-                                    <% } %>
-                                </div>
-                                <div class="flex-grow-1 overflow-hidden">
-                                    <div class="d-flex justify-content-between align-items-center mb-1">
-                                        <h6 class="fw-bold mb-0 text-truncate small">
-                                            <%= chat.type === 'private' ? (chat.participants.find(p => p._id.toString() !== user._id.toString())?.name || 'Deleted User') : chat.name %>
-                                        </h6>
-                                        <small class="text-muted flex-shrink-0" style="font-size: 0.65rem;">
-                                            <%= chat.updatedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) %>
-                                        </small>
-                                    </div>
-                                    <p class="text-muted extra-small mb-0 text-truncate last-msg-text">
-                                        <%= chat.last_message ? chat.last_message.content : 'No messages yet' %>
-                                    </p>
-                                </div>
-                            </div>
-                        </a>
-                    <% }) %>
-                </div>
-            <% } else { %>
-                <div class="text-center py-5 text-muted">
-                    <p class="small">No active chats.</p>
-                </div>
-            <% } %>
+        <div class="chat-side-search">
+            <i data-feather="search"></i>
+            <input type="text" id="chat-search" class="form-control" placeholder="Search conversations" autocomplete="off">
         </div>
-    </div>
 
-    <!-- Chat Window -->
-    <div class="col-md-8 col-lg-9 bg-white d-flex flex-column h-100 position-relative" id="chat-drop-zone">
-        <!-- Drag & Drop Overlay -->
-        <div id="drop-overlay" class="position-absolute top-0 start-0 w-100 h-100 bg-primary bg-opacity-10 d-none d-flex align-items-center justify-content-center" style="z-index: 1050; pointer-events: none; border: 2px dashed var(--primary);">
-            <div class="text-center bg-white p-4 rounded-4 shadow">
-                <i data-feather="upload-cloud" class="text-primary mb-2" style="width: 48px; height: 48px;"></i>
-                <h5 class="fw-bold">Drop files here to upload</h5>
+        <div class="chat-list" id="chat-list">
+            <div class="chat-sect" data-sect="direct">
+                <div class="chat-sect-label">Direct messages</div>
+                <div class="chat-sect-items" id="list-direct"></div>
+            </div>
+            <div class="chat-sect" data-sect="group">
+                <div class="chat-sect-label">Channels &amp; groups</div>
+                <div class="chat-sect-items" id="list-group"></div>
+            </div>
+
+            <div class="chat-empty" id="chat-empty">
+                <div class="chat-empty-ico"><i data-feather="message-circle"></i></div>
+                <p class="chat-empty-title">No conversations yet</p>
+                <p class="chat-empty-text">Start a private chat, group or channel to begin talking.</p>
+                <button class="btn btn-sm btn-primary btn-pill" type="button" data-bs-toggle="modal" data-bs-target="#privateChatModal">
+                    <i data-feather="plus"></i> New message
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Chat window -->
+    <section class="chat-main" id="chat-main">
+        <div class="chat-drop" id="chat-drop-zone">
+            <div id="drop-overlay" class="chat-drop-overlay">
+                <div class="chat-drop-card">
+                    <i data-feather="upload-cloud"></i>
+                    <p>Drop files to upload</p>
+                </div>
             </div>
         </div>
 
-        <div class="m-auto text-center text-muted" id="chat-window-placeholder">
-            <div class="bg-light rounded-circle d-inline-flex p-4 mb-3 shadow-sm">
-                <i data-feather="message-square" class="text-primary" style="width: 48px; height: 48px;"></i>
-            </div>
-            <h4 class="fw-bold">Your Messages</h4>
-            <p>Select a conversation to start chatting.</p>
+        <div class="chat-placeholder" id="chat-window-placeholder">
+            <div class="chat-placeholder-ico"><i data-feather="messages-square"></i></div>
+            <h5>Select a conversation</h5>
+            <p>Pick a chat on the left, or start something new.</p>
+            <button class="btn btn-sm btn-primary btn-pill" type="button" data-bs-toggle="modal" data-bs-target="#privateChatModal">
+                <i data-feather="plus"></i> New message
+            </button>
         </div>
 
-        <div class="d-none h-100 d-flex flex-column" id="active-chat-window">
-            <!-- Chat Header -->
-            <div class="p-3 border-bottom d-flex justify-content-between align-items-center flex-shrink-0">
-                <div class="d-flex align-items-center">
-                    <button class="btn btn-light btn-sm d-md-none me-2" id="back-to-list">
+        <div class="chat-active d-none" id="active-chat-window">
+            <div class="chat-head">
+                <div class="chat-head-left">
+                    <button class="icon-btn icon-btn-sm d-md-none" id="back-to-list" type="button" aria-label="Back to list">
                         <i data-feather="chevron-left"></i>
                     </button>
-                    <div class="avatar bg-light text-primary rounded-3 d-flex align-items-center justify-content-center fw-bold me-3" style="width: 36px; height: 36px;" id="header-avatar">?</div>
-                    <div>
-                        <h6 class="fw-bold mb-0 small" id="header-chat-name">Chat</h6>
-                        <small class="text-muted extra-small" id="header-chat-status">Channel</small>
+                    <div class="chat-avatar chat-avatar-sm" id="header-avatar">?</div>
+                    <div class="chat-head-meta">
+                        <h6 id="header-chat-name">Chat</h6>
+                        <span id="header-chat-status">Channel</span>
                     </div>
                 </div>
-                <div class="d-flex gap-2">
-                    <button class="btn btn-light btn-sm rounded-circle" data-bs-toggle="modal" data-bs-target="#codeModal" title="Send Code">
-                        <i data-feather="code" style="width: 16px;"></i>
+                <div class="chat-head-actions">
+                    <button class="icon-btn icon-btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#codeModal" title="Send code">
+                        <i data-feather="code"></i>
                     </button>
                 </div>
             </div>
 
-            <!-- Messages Container -->
-            <div class="flex-grow-1 overflow-y-auto p-4 d-flex flex-column gap-4" id="message-container"></div>
+            <div class="chat-msgs" id="message-container"></div>
 
-            <!-- Typing Indicator -->
-            <div class="px-4 py-2 small text-muted flex-shrink-0 d-none" id="typing-indicator">
-                <span id="typing-user" class="fw-bold">Someone</span> is typing...
+            <div class="chat-typing d-none" id="typing-indicator">
+                <span class="chat-typing-dot"><i></i><i></i><i></i></span>
+                <span><strong id="typing-user">Someone</strong> is typing</span>
             </div>
 
-            <!-- Chat Input -->
-            <div class="p-3 bg-white flex-shrink-0">
-                <form id="chat-form" class="bg-light rounded-4 p-2 shadow-sm">
-                    <div class="d-flex gap-2 align-items-center">
-                        <div class="dropdown">
-                            <button type="button" class="btn btn-transparent text-muted rounded-circle p-2" data-bs-toggle="dropdown">
-                                <i data-feather="plus-circle"></i>
-                            </button>
-                            <ul class="dropdown-menu shadow border-0">
-                                <li><a class="dropdown-item py-2" href="#" onclick="document.getElementById('chat-file-input').click()"><i data-feather="file" class="me-2"></i> Upload File</a></li>
-                                <li><a class="dropdown-item py-2" href="#" data-bs-toggle="modal" data-bs-target="#codeModal"><i data-feather="code" class="me-2"></i> Send Snippet</a></li>
-                            </ul>
-                        </div>
-                        <input type="file" id="chat-file-input" class="d-none" multiple>
-                        <input type="text" id="chat-input" class="form-control border-0 bg-transparent shadow-none" placeholder="Message #channel" autocomplete="off">
-                        <button type="submit" class="btn btn-primary rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px;">
-                            <i data-feather="send" style="width: 16px;"></i>
+            <div class="chat-composer">
+                <form id="chat-form" class="chat-composer-inner">
+                    <div class="dropdown">
+                        <button type="button" class="icon-btn icon-btn-sm" data-bs-toggle="dropdown" aria-label="Attach">
+                            <i data-feather="plus-circle"></i>
                         </button>
+                        <ul class="dropdown-menu shadow-sm">
+                            <li><button class="dropdown-item" type="button" id="pick-file"><i data-feather="file"></i><span>Upload file</span></button></li>
+                            <li><button class="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#codeModal"><i data-feather="code"></i><span>Send snippet</span></button></li>
+                        </ul>
                     </div>
+                    <input type="file" id="chat-file-input" class="d-none" multiple>
+                    <input type="text" id="chat-input" class="chat-input" placeholder="Type a message" autocomplete="off">
+                    <button type="submit" class="chat-send" aria-label="Send">
+                        <i data-feather="send"></i>
+                    </button>
                 </form>
-                <div class="extra-small text-muted mt-2 ms-2">
-                    <span class="fw-bold">Pro-tip:</span> Drag and drop files anywhere to upload!
-                </div>
+                <div class="chat-hint"><strong>Pro-tip:</strong> drag &amp; drop files anywhere to upload.</div>
             </div>
         </div>
-    </div>
+    </section>
 </div>
 
 <!-- Send Code Modal -->
@@ -171,235 +167,650 @@
 <%- include('modals') %>
 
 <script>
+(function () {
+    'use strict';
+
     const socket = window.appSocket || io();
-    const currentUserId = "<%= user._id %>";
+    const currentUserId = String("<%= user._id %>");
     const currentUserName = "<%= user.name %>";
+    const PALETTE = ['c1', 'c2', 'c3', 'c4', 'c5', 'c6'];
+
     let activeChatId = null;
     let activeChatType = null;
+    let lastMsgSender = null;
+    let lastMsgAt = 0;
+    let typingTimer = null;
+    const chatMeta = Object.create(null);
 
-    // Elements
     const chatForm = document.getElementById('chat-form');
     const chatInput = document.getElementById('chat-input');
     const messageContainer = document.getElementById('message-container');
-    const chatListItems = document.querySelectorAll('.chat-item');
     const activeChatWindow = document.getElementById('active-chat-window');
     const chatPlaceholder = document.getElementById('chat-window-placeholder');
     const typingIndicator = document.getElementById('typing-indicator');
     const typingUser = document.getElementById('typing-user');
-    const dropZone = document.getElementById('chat-drop-zone');
     const dropOverlay = document.getElementById('drop-overlay');
+    const chatListEl = document.getElementById('chat-list');
+    const chatSearch = document.getElementById('chat-search');
+    const chatEmpty = document.getElementById('chat-empty');
+    const chatCount = document.getElementById('chat-count');
+    const chatPage = document.getElementById('chat-page');
 
-    // Drag & Drop Handlers
-    window.addEventListener('dragenter', (e) => {
-        if (activeChatId) dropOverlay.classList.remove('d-none');
-    });
+    /* ---------- helpers ---------- */
+    function escapeHtml(value) {
+        return String(value == null ? '' : value)
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
 
-    dropOverlay.addEventListener('dragleave', (e) => {
-        dropOverlay.classList.add('d-none');
-    });
+    function hashTint(seed) {
+        const s = String(seed || '');
+        let h = 0;
+        for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+        return PALETTE[h % PALETTE.length];
+    }
 
-    window.addEventListener('dragover', (e) => e.preventDefault());
+    function initialsOf(name) {
+        return String(name || '?').trim().split(/\s+/).slice(0, 2)
+            .map(w => w.charAt(0)).join('').toUpperCase() || '?';
+    }
 
-    window.addEventListener('drop', async (e) => {
-        e.preventDefault();
-        dropOverlay.classList.add('d-none');
-        if (!activeChatId) return;
+    function avatarHtml(chat) {
+        if (chat.type === 'group') return '<i data-feather="users"></i>';
+        if (chat.type === 'channel') return '<i data-feather="hash"></i>';
+        const img = chat.avatar || '';
+        if (img) return '<img src="' + escapeHtml(img) + '" alt="">';
+        return escapeHtml(initialsOf(chat.display_name));
+    }
 
-        const files = e.dataTransfer.files;
-        if (files.length > 0) {
-            uploadFiles(files);
-        }
-    });
-
-    document.getElementById('chat-file-input').addEventListener('change', (e) => {
-        uploadFiles(e.target.files);
-    });
-
-    async function uploadFiles(files) {
-        for (const file of files) {
-            const formData = new FormData();
-            formData.append('file', file);
-
-            try {
-                const res = await fetch('/chat/upload', {
-                    method: 'POST',
-                    body: formData
-                });
-                const data = await res.json();
-
-                if (res.ok) {
-                    let type = 'file';
-                    if (file.type.startsWith('image/')) type = 'image';
-                    if (file.type.startsWith('video/')) type = 'video';
-
-                    socket.emit('send_message', {
-                        chatId: activeChatId,
-                        senderId: currentUserId,
-                        type: type,
-                        fileUrl: data.fileUrl,
-                        fileName: file.name,
-                        fileSize: (file.size / 1024 / 1024).toFixed(2) + ' MB'
-                    });
-                }
-            } catch (err) {
-                console.error('Upload failed:', err);
-            }
+    function toast(icon, title) {
+        if (window.Swal) {
+            Swal.fire({ toast: true, position: 'top-end', icon: icon, title: title, showConfirmButton: false, timer: 2600 });
+        } else {
+            console.warn(title);
         }
     }
 
-    // Code Snippet Handler
-    document.getElementById('send-code-form').addEventListener('submit', async (e) => {
+    /* ---------- sidebar list ---------- */
+    function sectionOf(type) {
+        return type === 'private' ? 'list-direct' : 'list-group';
+    }
+
+    function itemHtml(chat) {
+        const tint = hashTint(chat._id + (chat.display_name || ''));
+        const typeLabel = chat.type === 'private' ? '@' : '#';
+        const meta = chat.type === 'private'
+            ? escapeHtml(chat.display_email || '')
+            : (chat.type === 'group' ? 'Group' : (chat.is_public ? 'Public channel' : 'Private channel'));
+        const peer = chat.peer_id ? ' data-peer="' + escapeHtml(chat.peer_id) + '"' : '';
+        const presence = chat.type === 'private'
+            ? '<span class="presence-dot" data-role="presence"></span>'
+            : '';
+
+        return '' +
+            '<a href="#" class="chat-item" data-id="' + escapeHtml(chat._id) + '"' +
+            ' data-type="' + escapeHtml(chat.type) + '"' +
+            peer +
+            ' data-name="' + escapeHtml(chat.display_name || 'Chat') + '">' +
+                '<span class="chat-ava-wrap">' +
+                    '<span class="chat-avatar chat-tint-' + tint + '">' + avatarHtml(chat) + '</span>' +
+                    presence +
+                '</span>' +
+                '<span class="chat-item-body">' +
+                    '<span class="chat-item-top">' +
+                        '<span class="chat-item-name">' + typeLabel + escapeHtml(chat.display_name || 'Chat') + '</span>' +
+                        '<span class="chat-item-time" data-role="time"></span>' +
+                    '</span>' +
+                    '<span class="chat-item-sub">' +
+                        '<span class="chat-item-preview" data-role="preview">No messages yet</span>' +
+                        '<span class="chat-item-meta" data-role="meta">' + meta + '</span>' +
+                    '</span>' +
+                '</span>' +
+            '</a>';
+    }
+
+    function hydrateItem(el, chat) {
+        const preview = chat.last_message
+            ? (chat.last_message.type === 'text' ? chat.last_message.content
+                : (chat.last_message.type === 'code' ? (chat.last_message.content || '').split('\n')[0] : 'Sent a ' + chat.last_message.type))
+            : 'No messages yet';
+        const pv = el.querySelector('[data-role="preview"]');
+        const tm = el.querySelector('[data-role="time"]');
+        if (pv) {
+            pv.textContent = preview;
+            pv.classList.toggle('is-empty', !chat.last_message);
+        }
+        if (tm && chat.last_message) tm.textContent = timeStr(chat.last_message.createdAt || chat.updatedAt);
+    }
+
+    function timeStr(d) {
+        try { return new Date(d).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); }
+        catch (e) { return ''; }
+    }
+
+    function refreshEmptyState() {
+        const total = chatListEl.querySelectorAll('.chat-item').length;
+        chatEmpty.classList.toggle('d-none', total > 0);
+        if (chatCount) chatCount.textContent = total;
+        document.querySelectorAll('.chat-sect').forEach(sect => {
+            const items = sect.querySelectorAll('.chat-item');
+            sect.classList.toggle('d-none', items.length === 0);
+        });
+        applySearch();
+    }
+
+    function upsertChatItem(chat, opts) {
+        opts = opts || {};
+        chatMeta[chat._id] = chat;
+        const existing = chatListEl.querySelector('.chat-item[data-id="' + chat._id + '"]');
+        let el = existing;
+        if (!el) {
+            const wrap = document.createElement('div');
+            wrap.innerHTML = itemHtml(chat).trim();
+            el = wrap.firstElementChild;
+            document.getElementById(sectionOf(chat.type)).prepend(el);
+        } else {
+            const nameEl = el.querySelector('.chat-item-name');
+            if (nameEl) nameEl.textContent = (chat.type === 'private' ? '@' : '#') + (chat.display_name || 'Chat');
+        }
+        hydrateItem(el, chat);
+        applyPresence(el);
+        if (opts.moveTop) el.parentElement.prepend(el);
+        refreshEmptyState();
+        if (typeof feather !== 'undefined') feather.replace();
+        return el;
+    }
+
+    /* ---------- presence (online / offline) ---------- */
+    const presenceSet = new Set();
+
+    function applyPresence(scope) {
+        const root = scope || chatListEl;
+        root.querySelectorAll('.chat-item[data-peer]').forEach(el => {
+            const dot = el.querySelector('[data-role="presence"]');
+            if (!dot) return;
+            const online = presenceSet.has(el.dataset.peer);
+            dot.classList.toggle('is-online', online);
+            dot.classList.toggle('is-offline', !online);
+            dot.title = online ? 'Online' : 'Offline';
+            el.classList.toggle('peer-online', online);
+        });
+        updateHeaderPresence();
+    }
+
+    function updateHeaderPresence() {
+        const status = document.getElementById('header-chat-status');
+        if (!status || !activeChatId) return;
+        const item = chatListEl.querySelector('.chat-item[data-id="' + activeChatId + '"]');
+        if (!item || !item.dataset.peer) return;
+        const online = presenceSet.has(item.dataset.peer);
+        status.textContent = (activeChatType === 'private' ? 'Direct message' : 'Channel') +
+            (activeChatType === 'private' ? (online ? ' · Online' : ' · Offline') : '');
+        status.classList.toggle('is-online', online);
+        status.classList.toggle('is-offline', !online);
+    }
+
+    function handlePresenceList(ids) {
+        presenceSet.clear();
+        (ids || []).forEach(id => presenceSet.add(String(id)));
+        presenceSet.delete(currentUserId); // never mark yourself "the peer"
+        applyPresence();
+    }
+
+    function handlePresenceUpdate(payload) {
+        if (!payload || !payload.userId) return;
+        const id = String(payload.userId);
+        if (id === currentUserId) return;
+        if (payload.online) presenceSet.add(id); else presenceSet.delete(id);
+        applyPresence();
+    }
+
+    function applySearch() {
+        const q = (chatSearch.value || '').trim().toLowerCase();
+        chatListEl.querySelectorAll('.chat-item').forEach(el => {
+            const hay = (el.dataset.name || '').toLowerCase();
+            el.classList.toggle('d-none', q !== '' && hay.indexOf(q) === -1);
+        });
+    }
+
+    if (chatSearch) chatSearch.addEventListener('input', applySearch);
+
+    /* ---------- server-rendered seed ---------- */
+    const seedChats = <%- JSON.stringify((chats || []).map(function(chat) {
+        const other = chat.type === 'private'
+            ? chat.participants.find(p => String(p._id) !== String(user._id)) || {}
+            : {};
+        return {
+            _id: String(chat._id),
+            type: chat.type,
+            is_public: !!chat.is_public,
+            peer_id: chat.type === 'private' && other._id ? String(other._id) : '',
+            display_name: chat.type === 'private' ? (other.name || 'Unknown user') : (chat.name || 'Unnamed'),
+            display_email: chat.type === 'private'
+                ? (other.email || '')
+                : (chat.participants.length + ' members'),
+            avatar: chat.type === 'private' ? (other.profileImage || '') : '',
+            last_message: chat.last_message ? {
+                type: chat.last_message.type,
+                content: chat.last_message.content,
+                createdAt: chat.last_message.createdAt
+            } : null,
+            updatedAt: chat.updatedAt
+        };
+    })) %>;
+    seedChats.forEach(c => upsertChatItem(c, { moveTop: true }));
+    refreshEmptyState();
+
+    /* ---------- chat selection ---------- */
+    chatListEl.addEventListener('click', function (e) {
+        const item = e.target.closest('.chat-item');
+        if (!item) return;
         e.preventDefault();
-        const formData = new FormData(e.target);
-        const code = formData.get('code');
-        const lang = formData.get('language');
-
-        socket.emit('send_message', {
-            chatId: activeChatId,
-            senderId: currentUserId,
-            type: 'code',
-            content: code,
-            language: lang
-        });
-
-        bootstrap.Modal.getInstance(document.getElementById('codeModal')).hide();
-        e.target.reset();
+        selectChat(item.dataset.id, item.dataset.name, item.dataset.type);
     });
 
-    // Chat Selection
-    chatListItems.forEach(item => {
-        item.addEventListener('click', () => {
-            selectChat(item.dataset.id, item.dataset.name, item.dataset.type);
+    function setActiveItem(chatId) {
+        chatListEl.querySelectorAll('.chat-item').forEach(el => {
+            el.classList.toggle('active', el.dataset.id === chatId);
         });
-    });
+    }
 
     async function selectChat(chatId, name, type) {
         if (activeChatId) socket.emit('leave_chat', activeChatId);
         activeChatId = chatId;
         activeChatType = type;
+        lastMsgSender = null;
+        lastMsgAt = 0;
 
-        document.querySelectorAll('.chat-item').forEach(el => el.classList.remove('active', 'bg-light'));
-        document.querySelector(`.chat-item[data-id="${chatId}"]`).classList.add('bg-light');
+        setActiveItem(chatId);
 
-        document.getElementById('header-chat-name').innerText = (type === 'private' ? '' : '#') + name;
-        document.getElementById('header-avatar').innerText = name.charAt(0).toUpperCase();
-        chatInput.placeholder = `Message ${(type === 'private' ? '@' : '#') + name}`;
+        const prefix = type === 'private' ? '@' : '#';
+        const headerAvatar = document.getElementById('header-avatar');
+        const meta = chatMeta[chatId];
+        document.getElementById('header-chat-name').textContent = prefix + name;
+        headerAvatar.className = 'chat-avatar chat-avatar-sm chat-tint-' + hashTint(chatId + name);
+        if (type === 'private') {
+            headerAvatar.innerHTML = meta && meta.avatar
+                ? '<img src="' + escapeHtml(meta.avatar) + '" alt="">'
+                : escapeHtml(initialsOf(name));
+        } else {
+            headerAvatar.innerHTML = type === 'group' ? '<i data-feather="users"></i>' : '<i data-feather="hash"></i>';
+        }
+        if (typeof feather !== 'undefined') feather.replace();
+        document.getElementById('header-chat-status').textContent =
+            type === 'private' ? 'Direct message' : (type === 'group' ? 'Group chat' : 'Channel');
+        updateHeaderPresence();
+        chatInput.placeholder = 'Message ' + prefix + name;
 
         chatPlaceholder.classList.add('d-none');
         activeChatWindow.classList.remove('d-none');
+        activeChatWindow.classList.add('d-flex');
+        chatPage.classList.add('is-open');
+        typingIndicator.classList.add('d-none');
 
-        messageContainer.innerHTML = '<div class="m-auto text-center"><div class="spinner-border text-primary spinner-border-sm"></div></div>';
-        
+        messageContainer.innerHTML = '<div class="chat-loading"><span class="spinner-border spinner-border-sm text-primary"></span></div>';
+
         try {
-            const res = await fetch(`/chat/${chatId}/messages`);
+            const res = await fetch('/chat/' + encodeURIComponent(chatId) + '/messages');
+            if (!res.ok) throw new Error('Failed to load messages');
             const messages = await res.json();
             messageContainer.innerHTML = '';
-            messages.forEach(msg => appendMessage(msg));
+            lastMsgSender = null;
+            lastMsgAt = 0;
+            messages.forEach(m => appendMessage(m, false));
             scrollToBottom();
             socket.emit('join_chat', chatId);
         } catch (err) {
             console.error(err);
+            messageContainer.innerHTML = '<div class="chat-loading text-danger">Could not load messages.</div>';
         }
     }
 
-    // Message Utilities
-    function appendMessage(msg) {
-        const isMine = (msg.sender._id || msg.sender) === currentUserId;
-        const senderName = msg.sender.name || 'User';
-        const senderImg = msg.sender.profileImage || '/img/default-avatar.png';
+    /* ---------- messages ---------- */
+    function dayLabel(d) {
+        const date = new Date(d);
+        const today = new Date(); today.setHours(0, 0, 0, 0);
+        const that = new Date(date); that.setHours(0, 0, 0, 0);
+        const diff = Math.round((today - that) / 86400000);
+        if (diff === 0) return 'Today';
+        if (diff === 1) return 'Yesterday';
+        return date.toLocaleDateString([], { month: 'short', day: 'numeric', year: date.getFullYear() === today.getFullYear() ? undefined : 'numeric' });
+    }
 
-        let contentHtml = '';
-        if (msg.type === 'text') {
-            contentHtml = `<p class="mb-0 text-dark">${msg.content}</p>`;
-        } else if (msg.type === 'image') {
-            contentHtml = `<div class="message-media"><img src="${msg.file_url}" class="rounded-3 shadow-sm border mw-100" style="max-height: 300px;" onclick="window.open('${msg.file_url}')"></div>`;
-        } else if (msg.type === 'video') {
-            contentHtml = `<video src="${msg.file_url}" controls class="rounded-3 border mw-100" style="max-height: 300px;"></video>`;
-        } else if (msg.type === 'file') {
-            contentHtml = `<div class="file-box p-3 bg-light border rounded-3 d-flex align-items-center gap-3">
-                <div class="bg-primary text-white rounded-3 p-2"><i data-feather="file"></i></div>
-                <div class="overflow-hidden">
-                    <div class="fw-bold small text-truncate">${msg.file_name || 'Document'}</div>
-                    <div class="extra-small text-muted">${msg.file_size || 'Unknown size'}</div>
-                </div>
-                <a href="${msg.file_url}" target="_blank" class="btn btn-sm btn-light rounded-circle ms-auto"><i data-feather="download" style="width: 14px;"></i></a>
-            </div>`;
-        } else if (msg.type === 'code') {
-            const safeCode = msg.content.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-            contentHtml = `<div class="code-block position-relative rounded-3 overflow-hidden">
-                <div class="bg-dark text-white px-3 py-1 d-flex justify-content-between align-items-center extra-small">
-                    <span>${msg.language}</span>
-                    <button class="btn btn-link text-white p-0 text-decoration-none" onclick="copyCode(this)"><i data-feather="copy" style="width: 12px;"></i> Copy</button>
-                </div>
-                <pre class="m-0"><code class="language-${msg.language}">${safeCode}</code></pre>
-            </div>`;
+    function appendMessage(msg, scroll) {
+        const senderObj = msg.sender && typeof msg.sender === 'object' ? msg.sender : { _id: msg.sender };
+        const senderId = String(senderObj._id || '');
+        const isMine = senderId === currentUserId;
+        const senderName = senderObj.name || 'User';
+        const senderImg = senderObj.profileImage || '';
+        const tint = hashTint(senderId + senderName);
+        const createdAt = msg.createdAt || Date.now();
+
+        // day separator
+        const dayKey = dayLabel(createdAt);
+        const lastSep = messageContainer.querySelector('.chat-daysep:last-child');
+        if (!lastSep || lastSep.dataset.day !== dayKey) {
+            messageContainer.insertAdjacentHTML('beforeend',
+                '<div class="chat-daysep" data-day="' + escapeHtml(dayKey) + '"><span>' + escapeHtml(dayKey) + '</span></div>');
         }
 
-        const msgHtml = `
-            <div class="message-row d-flex gap-3 ${isMine ? 'flex-row-reverse' : ''}">
-                <img src="${senderImg}" class="rounded-circle flex-shrink-0" style="width: 36px; height: 36px;">
-                <div class="message-content-wrapper d-flex flex-column ${isMine ? 'align-items-end' : ''}" style="max-width: 80%;">
-                    <div class="d-flex align-items-baseline gap-2 mb-1">
-                        <span class="fw-bold small">${senderName}</span>
-                        <span class="text-muted extra-small">${new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                    </div>
-                    <div class="message-bubble ${isMine ? 'mine' : ''}">
-                        ${contentHtml}
-                    </div>
-                </div>
-            </div>
-        `;
-        messageContainer.insertAdjacentHTML('beforeend', msgHtml);
+        // group consecutive messages from the same sender within 5 minutes
+        const ts = new Date(createdAt).getTime();
+        const grouped = senderId === lastMsgSender && (ts - lastMsgAt) < 300000;
+
+        const contentHtml = buildContent(msg, tint);
+
+        const row = document.createElement('div');
+        row.className = 'msg-row' + (isMine ? ' mine' : '') + (grouped ? ' grouped' : '');
+        row.dataset.sender = senderId;
+        row.innerHTML =
+            '<div class="msg-ava chat-tint-' + tint + '">' +
+                (senderImg ? '<img src="' + escapeHtml(senderImg) + '" alt="">' : escapeHtml(initialsOf(senderName))) +
+            '</div>' +
+            '<div class="msg-main">' +
+                '<div class="msg-meta">' +
+                    '<span class="msg-sender">' + escapeHtml(isMine ? 'You' : senderName) + '</span>' +
+                    '<span class="msg-time">' + escapeHtml(timeStr(createdAt)) + '</span>' +
+                '</div>' +
+                '<div class="msg-bubble">' + contentHtml + '</div>' +
+            '</div>';
+
+        messageContainer.appendChild(row);
+
+        lastMsgSender = senderId;
+        lastMsgAt = ts;
+
         if (msg.type === 'code') {
-            const lastCode = messageContainer.querySelector('.message-row:last-child pre code');
-            if (lastCode) hljs.highlightElement(lastCode);
+            const code = row.querySelector('pre code');
+            if (code && window.hljs) hljs.highlightElement(code);
         }
         if (typeof feather !== 'undefined') feather.replace();
+        if (scroll !== false) {
+            scrollToBottom();
+            touchSidebar(msg);
+        }
     }
+
+    function buildContent(msg, tint) {
+        if (msg.type === 'image') {
+            return '<div class="msg-media"><img src="' + escapeHtml(msg.file_url) + '" alt="attachment" loading="lazy"></div>';
+        }
+        if (msg.type === 'video') {
+            return '<div class="msg-media"><video src="' + escapeHtml(msg.file_url) + '" controls></video></div>';
+        }
+        if (msg.type === 'file') {
+            return '<div class="msg-file">' +
+                '<span class="msg-file-ico"><i data-feather="file-text"></i></span>' +
+                '<span class="msg-file-body">' +
+                    '<span class="msg-file-name">' + escapeHtml(msg.file_name || 'Document') + '</span>' +
+                    '<span class="msg-file-size">' + escapeHtml(msg.file_size || 'Unknown size') + '</span>' +
+                '</span>' +
+                '<a class="msg-file-dl" href="' + escapeHtml(msg.file_url) + '" target="_blank" rel="noopener" aria-label="Download">' +
+                    '<i data-feather="download"></i></a>' +
+                '</div>';
+        }
+        if (msg.type === 'code') {
+            const safe = escapeHtml(msg.content || '');
+            return '<div class="msg-code">' +
+                '<div class="msg-code-head">' +
+                    '<span>' + escapeHtml(msg.language || 'text') + '</span>' +
+                    '<button type="button" class="msg-code-copy" onclick="window.__copyChatCode(this)">' +
+                        '<i data-feather="copy"></i> Copy</button>' +
+                '</div>' +
+                '<pre class="m-0"><code class="language-' + escapeHtml(msg.language || 'javascript') + '">' + safe + '</code></pre>' +
+                '</div>';
+        }
+        return '<div class="msg-text">' + escapeHtml(msg.content || '') + '</div>';
+    }
+
+    window.__copyChatCode = function (btn) {
+        const code = btn.closest('.msg-code').querySelector('code').innerText;
+        const done = () => { btn.innerHTML = '<i data-feather="check"></i> Copied'; if (typeof feather !== 'undefined') feather.replace(); };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(code).then(done).catch(done);
+        } else { done(); }
+    };
 
     function scrollToBottom() {
         messageContainer.scrollTop = messageContainer.scrollHeight;
     }
 
-    function copyCode(btn) {
-        const code = btn.closest('.code-block').querySelector('code').innerText;
-        navigator.clipboard.writeText(code);
-        const original = btn.innerHTML;
-        btn.innerHTML = 'Copied!';
-        setTimeout(() => btn.innerHTML = original, 2000);
+    function touchSidebar(msg) {
+        const el = chatListEl.querySelector('.chat-item[data-id="' + (msg.chat || activeChatId) + '"]');
+        if (!el) return;
+        const pv = el.querySelector('[data-role="preview"]');
+        const tm = el.querySelector('[data-role="time"]');
+        if (pv) {
+            pv.textContent = msg.type === 'text' ? msg.content : 'Sent a ' + msg.type;
+            pv.classList.remove('is-empty');
+        }
+        if (tm) tm.textContent = timeStr(msg.createdAt || Date.now());
+        if (el.parentElement) el.parentElement.prepend(el);
     }
 
-    // Socket listeners...
-    socket.on('receive_message', (message) => {
-        if (message.chat === activeChatId) {
-            appendMessage(message);
-            scrollToBottom();
+    /* ---------- create conversations ---------- */
+    function closeById(id) {
+        const el = document.getElementById(id);
+        const inst = bootstrap.Modal.getInstance(el);
+        if (inst) inst.hide(); else new bootstrap.Modal(el).hide();
+    }
+
+    async function postJson(url, body) {
+        const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body || {})
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.message || 'Request failed');
+        return data;
+    }
+
+    function openCreated(chat) {
+        if (chat.type === 'private' && !chat.peer_id && Array.isArray(chat.participants)) {
+            const other = chat.participants.find(p => String(p._id) !== currentUserId);
+            chat.peer_id = other ? String(other._id) : '';
         }
-        // Update sidebar logic...
+        const el = upsertChatItem(chat, { moveTop: true });
+        const name = chat.display_name || el.dataset.name || 'Chat';
+        selectChat(chat._id, name, chat.type);
+    }
+
+    document.querySelectorAll('.create-private-chat').forEach(btn => {
+        btn.addEventListener('click', async function (e) {
+            e.preventDefault();
+            const recipientId = this.dataset.id;
+            const label = this.querySelector('.pf-name') ? this.querySelector('.pf-name').textContent : 'user';
+            try {
+                this.classList.add('is-loading');
+                const chat = await postJson('/chat/private', { recipientId: recipientId });
+                closeById('privateChatModal');
+                openCreated(chat);
+                toast('success', 'Conversation with ' + (chat.display_name || label) + ' opened');
+            } catch (err) {
+                toast('error', err.message);
+            } finally {
+                this.classList.remove('is-loading');
+            }
+        });
     });
 
-    chatForm.addEventListener('submit', (e) => {
+    const groupForm = document.getElementById('create-group-form');
+    if (groupForm) {
+        groupForm.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const fd = new FormData(this);
+            const payload = { name: fd.get('name'), participants: fd.getAll('participants') };
+            if (!String(payload.name || '').trim()) return toast('warning', 'Enter a group name');
+            if (!payload.participants.length) return toast('warning', 'Select at least one member');
+            try {
+                const chat = await postJson('/chat/group', payload);
+                closeById('createGroupModal');
+                this.reset();
+                openCreated(chat);
+                toast('success', 'Group created');
+            } catch (err) { toast('error', err.message); }
+        });
+    }
+
+    const channelForm = document.getElementById('create-channel-form');
+    if (channelForm) {
+        channelForm.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const fd = new FormData(this);
+            const payload = { name: fd.get('name'), is_public: fd.get('is_public') ? 'true' : 'false' };
+            if (!String(payload.name || '').trim()) return toast('warning', 'Enter a channel name');
+            try {
+                const chat = await postJson('/chat/channel', payload);
+                closeById('createChannelModal');
+                this.reset();
+                openCreated(chat);
+                toast('success', 'Channel created');
+            } catch (err) { toast('error', err.message); }
+        });
+    }
+
+    /* ---------- composer ---------- */
+    chatForm.addEventListener('submit', function (e) {
         e.preventDefault();
         const content = chatInput.value.trim();
         if (!content || !activeChatId) return;
         socket.emit('send_message', { chatId: activeChatId, senderId: currentUserId, type: 'text', content });
         chatInput.value = '';
+        socket.emit('stop_typing', { chatId: activeChatId });
     });
-</script>
 
-<style>
-    .chat-wrapper { background: #f8f9fa; }
-    .extra-small { font-size: 0.7rem; }
-    .message-bubble { 
-        padding: 8px 12px; 
-        border-radius: 12px;
-        background: #f1f3f5;
+    chatInput.addEventListener('input', function () {
+        if (!activeChatId) return;
+        socket.emit('typing', { chatId: activeChatId, userName: currentUserName });
+        clearTimeout(typingTimer);
+        typingTimer = setTimeout(() => socket.emit('stop_typing', { chatId: activeChatId }), 1800);
+    });
+
+    /* ---------- code snippet ---------- */
+    document.getElementById('send-code-form').addEventListener('submit', function (e) {
+        e.preventDefault();
+        if (!activeChatId) return toast('warning', 'Select a conversation first');
+        const fd = new FormData(e.target);
+        socket.emit('send_message', {
+            chatId: activeChatId, senderId: currentUserId, type: 'code',
+            content: fd.get('code'), language: fd.get('language')
+        });
+        closeById('codeModal');
+        e.target.reset();
+    });
+
+    /* ---------- uploads ---------- */
+    document.getElementById('pick-file').addEventListener('click', function () {
+        document.getElementById('chat-file-input').click();
+    });
+
+    document.getElementById('chat-file-input').addEventListener('change', function (e) {
+        uploadFiles(e.target.files);
+        e.target.value = '';
+    });
+
+    async function uploadFiles(files) {
+        if (!activeChatId) return toast('warning', 'Select a conversation first');
+        for (const file of files) {
+            const formData = new FormData();
+            formData.append('file', file);
+            try {
+                const res = await fetch('/chat/upload', { method: 'POST', body: formData });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message || 'Upload failed');
+                let type = 'file';
+                if (file.type.startsWith('image/')) type = 'image';
+                else if (file.type.startsWith('video/')) type = 'video';
+                socket.emit('send_message', {
+                    chatId: activeChatId, senderId: currentUserId, type: type,
+                    fileUrl: data.fileUrl, fileName: file.name,
+                    fileSize: (file.size / 1024 / 1024).toFixed(2) + ' MB'
+                });
+            } catch (err) {
+                console.error('Upload failed:', err);
+                toast('error', err.message || 'Upload failed');
+            }
+        }
     }
-    .message-bubble.mine {
-        background: #eef2ff;
-        border: 1px solid #e0e7ff;
+
+    window.addEventListener('dragenter', e => { if (activeChatId) dropOverlay.classList.add('is-on'); });
+    window.addEventListener('dragover', e => e.preventDefault());
+    window.addEventListener('dragleave', e => {
+        if (e.relatedTarget === null) dropOverlay.classList.remove('is-on');
+    });
+    window.addEventListener('drop', e => {
+        e.preventDefault();
+        dropOverlay.classList.remove('is-on');
+        if (!activeChatId) return;
+        if (e.dataTransfer && e.dataTransfer.files.length) uploadFiles(e.dataTransfer.files);
+    });
+
+    /* ---------- mobile back ---------- */
+    document.getElementById('back-to-list').addEventListener('click', function () {
+        chatPage.classList.remove('is-open');
+    });
+
+    /* ---------- sockets ---------- */
+    socket.on('receive_message', function (message) {
+        const chatId = String(message.chat);
+        if (activeChatId && chatId === String(activeChatId)) {
+            appendMessage(message, true);
+        } else {
+            touchSidebar(message);
+        }
+    });
+
+    socket.on('user_typing', function (data) {
+        if (activeChatId && String(data.chatId) === String(activeChatId)) {
+            typingUser.textContent = data.userName || 'Someone';
+            typingIndicator.classList.remove('d-none');
+        }
+    });
+
+    socket.on('user_stop_typing', function (data) {
+        if (activeChatId && String(data.chatId) === String(activeChatId)) {
+            typingIndicator.classList.add('d-none');
+        }
+    });
+
+    socket.on('error', function (data) {
+        if (data && data.message) toast('error', data.message);
+    });
+
+    socket.on('presence:list', function (data) {
+        handlePresenceList(data && data.online);
+    });
+
+    socket.on('presence:update', function (data) {
+        handlePresenceUpdate(data);
+    });
+
+    // The list may be emitted before this handler attaches (if appSocket was
+    // already connected by session-monitor) — ask for a fresh copy either way.
+    function requestPresence() {
+        if (socket.connected) {
+            socket.emit('presence:request');
+        } else {
+            socket.once('connect', function () { socket.emit('presence:request'); });
+        }
     }
-    .code-block pre { padding: 1rem; background: #1e1e1e; color: #d4d4d4; font-size: 0.85rem; }
-    .message-row:hover { background: rgba(0,0,0,0.01); }
-    .avatar { border-radius: 8px; }
-</style>
+    requestPresence();
+
+    // Re-sync when the socket reconnects or the tab regains focus.
+    if (socket.io) socket.io.on('reconnect', requestPresence);
+    window.addEventListener('focus', function () {
+        if (socket.connected) socket.emit('presence:request');
+    });
+
+    /* ---------- deep link: /chat?open=<id> ---------- */
+    (function () {
+        const openId = new URLSearchParams(window.location.search).get('open');
+        if (!openId) return;
+        const el = chatListEl.querySelector('.chat-item[data-id="' + openId + '"]');
+        if (el) selectChat(el.dataset.id, el.dataset.name, el.dataset.type);
+    })();
+
+    if (typeof feather !== 'undefined') feather.replace();
+})();
+</script>

@@ -1,40 +1,70 @@
-<div class="row min-vh-100 align-items-center justify-content-center g-0">
-    <div class="col-md-5 col-lg-4">
-        <div class="text-center mb-5">
-            <div class="bg-primary text-white rounded-4 d-inline-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px; box-shadow: 0 10px 20px -5px rgba(79, 70, 229, 0.5);">
-                <i data-feather="zap" style="width: 32px; height: 32px;"></i>
-            </div>
-            <h2 class="fw-bold">Welcome back</h2>
-            <p class="text-muted">Please enter your details to sign in.</p>
-        </div>
+<div class="auth-wrap">
+    <%- include('../partials/auth-brand', {
+        eyebrow: 'Welcome back',
+        headline: 'Your workspace, always in sync.',
+        sub: 'Sign in to pick up where you left off — your notes, tasks and daily logs are waiting for you.'
+    }) %>
 
-        <div class="card border-0 shadow-lg p-2" style="border-radius: 24px;">
-            <div class="card-body p-4 p-md-5">
+    <section class="auth-panel">
+        <div class="auth-panel-inner">
+            <header class="auth-panel-head">
+                <a href="/" class="auth-mobile-logo">
+                    <span class="auth-logo-mark auth-logo-mark-dark"><i data-feather="zap"></i></span>
+                    <span>ZenNotes</span>
+                </a>
+                <h2>Sign in</h2>
+                <p>Welcome back! Please enter your details to continue.</p>
+            </header>
+
+            <div class="auth-card">
+                <% const loginAlerts = [...(error_msg || []), ...(error || [])]; %>
+                <% if (loginAlerts.length) { %>
+                <div class="auth-alert auth-alert-error" role="alert">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    <span><%= loginAlerts[0] %></span>
+                </div>
+                <% } %>
+                <% if (success_msg && success_msg.length) { %>
+                <div class="auth-alert auth-alert-success" role="alert">
+                    <i class="fa-solid fa-circle-check"></i>
+                    <span><%= success_msg[0] %></span>
+                </div>
+                <% } %>
+
                 <form id="login-form" action="/auth/login" method="POST" novalidate>
-                    <div class="mb-4">
-                        <label for="email" class="form-label small fw-bold text-uppercase text-muted">Email address</label>
-                        <input type="email" id="email" name="email" class="form-control form-control-lg border-0 bg-light" placeholder="name@company.com" required>
+                    <div class="auth-field">
+                        <label for="email">Email address</label>
+                        <input type="email" id="email" name="email" class="form-control" placeholder="name@company.com" autocomplete="email" value="<%= old_email || '' %>" required>
                     </div>
-                    <div class="mb-4">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <label for="password" class="form-label small fw-bold text-uppercase text-muted mb-0">Password</label>
-                            <a href="#" class="text-primary small text-decoration-none fw-medium">Forgot?</a>
+
+                    <div class="auth-field">
+                        <div class="auth-label-row">
+                            <label for="password">Password</label>
+                            <a href="/auth/forgot-password" class="auth-link">Forgot password?</a>
                         </div>
-                        <input type="password" id="password" name="password" class="form-control form-control-lg border-0 bg-light" placeholder="••••••••" required>
+                        <div class="password-field">
+                            <input type="password" id="password" name="password" class="form-control" placeholder="Enter your password" autocomplete="current-password" required>
+                            <button type="button" class="password-toggle" data-password-toggle="#password" aria-label="Show password" tabindex="-1">
+                                <i class="fa-solid fa-eye"></i>
+                            </button>
+                        </div>
                     </div>
-                    <div class="mb-4 form-check">
-                        <input type="checkbox" class="form-check-input" id="remember">
-                        <label class="form-check-label small text-muted" for="remember">Remember me for 30 days</label>
+
+                    <div class="auth-check">
+                        <input type="checkbox" class="form-check-input" id="remember" name="remember">
+                        <label class="form-check-label" for="remember">Remember me for 30 days</label>
                     </div>
-                    <button type="submit" class="btn btn-primary w-100 py-3 rounded-pill fw-bold shadow-sm">
-                        Sign in
+
+                    <button type="submit" class="btn btn-primary auth-submit">
+                        Sign in <i class="fa-solid fa-arrow-right"></i>
                     </button>
                 </form>
             </div>
-        </div>
 
-        <p class="text-center mt-5 text-muted">
-            Don't have an account? <a href="/auth/register" class="text-primary fw-bold text-decoration-none">Sign up for free</a>
-        </p>
-    </div>
+            <p class="auth-switch">
+                Don’t have an account?
+                <a href="/auth/register" class="auth-link-strong">Create an account</a>
+            </p>
+        </div>
+    </section>
 </div>

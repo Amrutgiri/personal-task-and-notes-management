@@ -15,7 +15,7 @@ exports.getChats = async (req, res) => {
         { type: 'channel', is_public: true }
       ]
     })
-    .populate('participants', 'name email')
+    .populate('participants', 'name email profileImage')
     .populate('last_message')
     .sort({ updatedAt: -1 });
 
@@ -48,7 +48,7 @@ exports.getMessages = async (req, res) => {
     }
 
     const messages = await Message.find({ chat: req.params.id })
-      .populate('sender', 'name')
+      .populate('sender', 'name profileImage')
       .sort({ createdAt: 1 });
 
     res.json(messages);
@@ -64,6 +64,14 @@ exports.createPrivateChat = async (req, res) => {
     const { recipientId } = req.body;
     const userId = req.session.user._id;
 
+    if (!recipientId) return res.status(400).json({ message: 'Recipient is required' });
+    if (recipientId.toString() === userId.toString()) {
+      return res.status(400).json({ message: 'You cannot start a chat with yourself' });
+    }
+
+    const recipient = await User.findById(recipientId, 'name email profileImage');
+    if (!recipient) return res.status(404).json({ message: 'User not found' });
+
     // Check if chat already exists
     let chat = await Chat.findOne({
       type: 'private',
@@ -73,11 +81,20 @@ exports.createPrivateChat = async (req, res) => {
     if (!chat) {
       chat = await Chat.create({
         type: 'private',
-        participants: [userId, recipientId]
+        participants: [userId, recipientId],
+        created_by: userId
       });
     }
 
-    res.json(chat);
+    const payload = chat.toObject();
+    payload.participants = [
+      { _id: userId, name: req.session.user.name, email: req.session.user.email, profileImage: req.session.user.profileImage },
+      { _id: recipient._id, name: recipient.name, email: recipient.email, profileImage: recipient.profileImage }
+    ];
+    payload.display_name = recipient.name;
+    payload.display_email = recipient.email;
+
+    res.json(payload);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -90,15 +107,24 @@ exports.createGroup = async (req, res) => {
     const { name, participants } = req.body;
     const userId = req.session.user._id;
 
-    const chat = await Chat.create({
+    if (!name || !name.trim()) return res.status(400).json({ message: 'Group name is required' });
+
+    const members = Array.isArray(participants) ? participants : (participants ? [participants] : []);
+    const uniqueMembers = [...new Set([...members.map(String), String(userId)])];
+
+    let chat = await Chat.create({
       type: 'group',
-      name,
-      participants: [...participants, userId],
+      name: name.trim(),
+      participants: uniqueMembers,
       admins: [userId],
       created_by: userId
     });
 
-    res.json(chat);
+    chat = await chat.populate('participants', 'name email profileImage');
+    const payload = chat.toObject();
+    payload.display_name = chat.name;
+
+    res.json(payload);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -111,16 +137,22 @@ exports.createChannel = async (req, res) => {
     const { name, is_public } = req.body;
     const userId = req.session.user._id;
 
-    const chat = await Chat.create({
+    if (!name || !name.trim()) return res.status(400).json({ message: 'Channel name is required' });
+
+    let chat = await Chat.create({
       type: 'channel',
-      name,
+      name: name.trim(),
       participants: [userId],
       admins: [userId],
       created_by: userId,
       is_public: is_public === 'true' || is_public === true
     });
 
-    res.json(chat);
+    chat = await chat.populate('participants', 'name email profileImage');
+    const payload = chat.toObject();
+    payload.display_name = chat.name;
+
+    res.json(payload);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -134,7 +166,9 @@ exports.uploadFile = async (req, res) => {
       return res.status(400).json({ message: 'No file uploaded' });
     }
 
-    const fileUrl = `/uploads/${req.file.filename}`;
+    // Files are stored on Cloudinary (see middleware/upload.js); `path` holds the
+    // CDN URL while `filename` is just the public_id — never build an /uploads/ URL here.
+    const fileUrl = req.file.path || `/uploads/${req.file.filename}`;
     const fileType = req.file.mimetype.startsWith('image/') ? 'image' : 'file';
 
     res.json({ fileUrl, fileType });

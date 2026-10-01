@@ -1,58 +1,83 @@
-const publicVapidKey = 'BMI45rPdlreUTrbeqJemgRIH1Do_o7tGbTtDlel9Msq-Y6GHG3AGKPlN8TAfowZ6DakYgKAZawVfHSaeZihxTXE';
+(function () {
+  // The VAPID public key is injected from the server (set on <body data-vapid-public-key>)
+  // so the client never drifts out of sync with the private key in `.env`.
+  const publicVapidKey = (document.body && document.body.dataset.vapidPublicKey) || '';
 
-// Check for service worker
-if ('serviceWorker' in navigator) {
-  send().catch(err => console.error(err));
-}
+  const SUBSCRIBED_FLAG = 'push_subscribed';
 
-// Register SW, Register Push, Send Push
-async function send() {
-  // Register Service Worker
-  console.log('Registering service worker...');
-  const register = await navigator.serviceWorker.register('/service-worker.js', {
-    scope: '/'
-  });
-  console.log('Service Worker Registered...');
+  if (!('serviceWorker' in navigator) || !('PushManager' in window) || !publicVapidKey) {
+    return;
+  }
 
-  // Check if permission is already granted
-  if (Notification.permission === 'default') {
-    const permission = await Notification.requestPermission();
-    if (permission !== 'granted') {
-      console.log('Notification permission denied');
+  // Re-use the same service worker registration as the rest of the app.
+  navigator.serviceWorker.register('/service-worker.js', { scope: '/' })
+    .then(function (registration) {
+      return ensurePushSubscription(registration);
+    })
+    .catch(function (err) {
+      console.error('Push setup failed:', err);
+    });
+
+  async function ensurePushSubscription(registration) {
+    // Ask for permission only when the browser hasn't decided yet. If the user
+    // previously blocked notifications, do not nag — silently give up.
+    if (Notification.permission === 'denied') {
       return;
     }
-  }
-
-  // Register Push
-  console.log('Registering Push...');
-  const subscription = await register.pushManager.subscribe({
-    userVisibleOnly: true,
-    applicationServerKey: urlBase64ToUint8Array(publicVapidKey)
-  });
-  console.log('Push Registered...');
-
-  // Send Subscription to server
-  await fetch('/notifications/subscribe', {
-    method: 'POST',
-    body: JSON.stringify(subscription),
-    headers: {
-      'content-type': 'application/json'
+    if (Notification.permission === 'default') {
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') {
+        return;
+      }
     }
-  });
-  console.log('Subscription sent to server...');
-}
 
-function urlBase64ToUint8Array(base64String) {
-  const padding = '='.repeat((4 - base64String.length % 4) % 4);
-  const base64 = (base64String + padding)
-    .replace(/\-/g, '+')
-    .replace(/_/g, '/');
+    let subscription = await registration.pushManager.getSubscription();
 
-  const rawData = window.atob(base64);
-  const outputArray = new Uint8Array(rawData.length);
+    if (!subscription) {
+      subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(publicVapidKey)
+      });
+    }
 
-  for (let i = 0; i < rawData.length; ++i) {
-    outputArray[i] = rawData.charCodeAt(i);
+    await syncSubscription(subscription);
+
+    // Push endpoints can be rotated by the push service; re-sync when the tab
+    // regains focus so the server always has a fresh, valid subscription row.
+    window.addEventListener('focus', function () {
+      registration.pushManager.getSubscription().then(function (sub) {
+        if (sub) syncSubscription(sub);
+      });
+    });
   }
-  return outputArray;
-}
+
+  async function syncSubscription(subscription) {
+    try {
+      const res = await fetch('/notifications/subscribe', {
+        method: 'POST',
+        body: JSON.stringify(subscription.toJSON()),
+        headers: { 'content-type': 'application/json' }
+      });
+      if (res.ok) {
+        localStorage.setItem(SUBSCRIBED_FLAG, '1');
+      }
+    } catch (err) {
+      console.error('Subscription sync failed:', err);
+    }
+  }
+
+  function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding)
+      .replace(/-/g, '+')
+      .replace(/_/g, '/');
+
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+  }
+})();

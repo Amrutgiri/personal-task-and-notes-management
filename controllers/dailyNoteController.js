@@ -262,11 +262,14 @@ exports.getDailyNotes = async (req, res) => {
     }
 
     // Pagination
-    const page = parseInt(req.query.page) || 1;
     const limit = 10;
+    const totalNotes = await DailyNote.countDocuments(query);
+    const totalPages = Math.max(1, Math.ceil(totalNotes / limit));
+    let page = parseInt(req.query.page, 10) || 1;
+    if (page < 1) page = 1;
+    if (page > totalPages) page = totalPages;
     const skip = (page - 1) * limit;
 
-    const totalNotes = await DailyNote.countDocuments(query);
     const dailyNotes = await DailyNote.find(query)
       .sort({ date: 'desc', createdAt: 'desc' })
       .skip(skip)
@@ -281,7 +284,10 @@ exports.getDailyNotes = async (req, res) => {
       startDate: req.query.startDate || '',
       endDate: req.query.endDate || '',
       page: 'daily-notes',
-      totalPages: Math.ceil(totalNotes / limit),
+      currentPage: page,
+      totalNotes,
+      totalPages,
+      perPage: limit,
       user: req.session.user
     });
   } catch (err) {

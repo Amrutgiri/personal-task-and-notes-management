@@ -243,6 +243,44 @@
       }
     });
 
+    applyValidation('#forgot-password-form', {
+      rules: {
+        email: {
+          required: true,
+          email: true
+        }
+      },
+      messages: {
+        email: {
+          required: 'Please enter your email address.',
+          email: 'Enter a valid email address.'
+        }
+      }
+    });
+
+    applyValidation('#reset-password-form', {
+      rules: {
+        password: {
+          required: true,
+          strongPassword: true,
+          maxlength: 128
+        },
+        confirm_password: {
+          required: true,
+          equalTo: '#password'
+        }
+      },
+      messages: {
+        password: {
+          required: 'Please enter a new password.'
+        },
+        confirm_password: {
+          required: 'Please confirm your new password.',
+          equalTo: 'Passwords do not match.'
+        }
+      }
+    });
+
     applyValidation('#note-form', {
       rules: {
         title: {

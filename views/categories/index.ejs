@@ -1,20 +1,23 @@
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="fw-bold mb-0">Categories</h2>
+<div class="page-head">
+    <div class="page-head-text">
+        <h1>Categories</h1>
+        <p>Organise notes with lightweight labels you control.</p>
+    </div>
 </div>
 
-<div class="row g-4">
+<div class="row g-3">
     <div class="col-md-4">
         <div class="card border-0 shadow-sm">
-            <div class="card-header border-0 bg-transparent pt-4 px-4">
+            <div class="card-header border-0 bg-transparent px-3">
                 <h5 class="fw-bold mb-0">Add New Category</h5>
             </div>
-            <div class="card-body p-4">
+            <div class="card-body">
                 <form action="/categories" method="POST">
-                    <div class="mb-4">
+                    <div class="mb-3">
                         <label for="name" class="form-label small fw-bold text-uppercase text-muted">Category Name</label>
                         <input type="text" class="form-control border-0 bg-light" id="name" name="name" placeholder="e.g. Work, Personal, Ideas" required>
                     </div>
-                    <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 shadow-sm">
+                    <button type="submit" class="btn btn-primary w-100 rounded-pill shadow-sm">
                         <i data-feather="plus"></i> Create Category
                     </button>
                 </form>
@@ -24,15 +27,15 @@
     
     <div class="col-md-8">
         <div class="card border-0 shadow-sm h-100">
-            <div class="card-header border-0 bg-transparent pt-4 px-4">
+            <div class="card-header border-0 bg-transparent px-3">
                 <h5 class="fw-bold mb-0">Existing Categories</h5>
             </div>
-            <div class="card-body p-4">
+            <div class="card-body">
                 <div class="row g-3">
                     <% if(categories.length > 0) { %>
                         <% categories.forEach(category => { %>
                             <div class="col-sm-6 col-lg-4">
-                                <div class="d-flex justify-content-between align-items-center bg-light p-3 rounded-4 border">
+                                <div class="d-flex justify-content-between align-items-center bg-light px-3 py-2 rounded-3 border">
                                     <span class="fw-medium text-main"><%= category.name %></span>
                                     <form action="/categories/<%= category._id %>?_method=DELETE" method="POST" class="d-inline">
                                         <button type="submit" class="btn btn-link p-0 text-danger" onclick="confirmDelete(event)">

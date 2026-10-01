@@ -20,15 +20,37 @@ module.exports = (io) => {
 
     // Handle sending message
     socket.on('send_message', async (data) => {
-      const { chatId, senderId, content, type, fileUrl, fileName, fileSize, language } = data;
+      const { chatId, content, type, fileUrl, fileName, fileSize, language } = data;
 
       try {
+        // IMPORTANT: derive the sender from the authenticated session, never from
+        // the client-supplied `senderId` — a stale/wrong value makes notifications
+        // target the wrong user (one side silently receives no push).
+        const sessionUser = socket.request.session && socket.request.session.user;
+        const senderId = sessionUser && sessionUser._id ? String(sessionUser._id) : null;
+        if (!senderId) {
+          socket.emit('error', { message: 'You must be logged in to send messages' });
+          return;
+        }
+
         const chat = await Chat.findById(chatId).populate('participants');
-        if (!chat) return;
+        if (!chat) {
+          socket.emit('error', { message: 'Chat not found' });
+          return;
+        }
+
+        // Only participants may post
+        const isParticipant = chat.participants.some(
+          (p) => p && p._id && String(p._id) === senderId
+        );
+        if (!isParticipant) {
+          socket.emit('error', { message: 'You are not a participant of this chat' });
+          return;
+        }
 
         // Permissions check for channels
-        if (chat.type === 'channel') {
-          if (!chat.admins.includes(senderId)) {
+        if (chat.type === 'channel' && Array.isArray(chat.admins)) {
+          if (!chat.admins.some((a) => String(a) === senderId)) {
             socket.emit('error', { message: 'Only admins can send messages in this channel' });
             return;
           }
@@ -54,23 +76,38 @@ module.exports = (io) => {
         // Broadcast to all participants in the room
         io.to(chatId).emit('receive_message', populatedMessage);
 
-        // Send Push Notifications to other participants
+        // Build the push payload. `content` can be undefined for file/video
+        // uploads, so derive a readable body instead of pushing "undefined".
+        const senderName = (populatedMessage.sender && populatedMessage.sender.name) || 'New message';
+        const msgType = type || 'text';
+        let body;
+        if (msgType === 'text' || msgType === 'code') {
+          body = content || 'Sent a message';
+        } else if (fileName) {
+          body = `Sent ${/^(image|video)$/.test(msgType) ? 'an' : 'a'} ${msgType}: ${fileName}`;
+        } else {
+          body = `Sent a ${msgType}`;
+        }
+
         const pushPayload = {
-          title: populatedMessage.sender.name,
-          body: type === 'text' ? content : `Sent a ${type}`,
-          icon: populatedMessage.sender.profileImage,
+          title: senderName,
+          body,
+          icon: (populatedMessage.sender && populatedMessage.sender.profileImage) || '/img/default-avatar.png',
           chatId: chatId,
           url: `/chat?open=${chatId}`
         };
 
-        chat.participants.forEach(participant => {
-          if (participant._id.toString() !== senderId.toString()) {
+        // Notify every other participant — identical branch for admin -> user
+        // and user -> admin so notifications stay symmetric.
+        chat.participants.forEach((participant) => {
+          if (participant && participant._id && String(participant._id) !== senderId) {
             notificationService.sendPushNotification(participant._id, pushPayload);
           }
         });
 
       } catch (err) {
         console.error('Socket send_message error:', err);
+        socket.emit('error', { message: 'Could not send the message' });
       }
     });
 

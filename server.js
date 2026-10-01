@@ -61,7 +61,9 @@ const sessionMiddleware = session({
   store: sessionStore,
   cookie: {
     httpOnly: true,
-    secure: isProduction,
+    // 'auto' => secure only when the request actually arrives over HTTPS
+    // (works behind the Vercel proxy, and keeps sessions working on http://localhost)
+    secure: 'auto',
     sameSite: 'lax'
   }
 });
@@ -86,8 +88,10 @@ app.use((req, res, next) => {
   res.locals.success_msg = req.flash('success_msg');
   res.locals.error_msg = req.flash('error_msg');
   res.locals.error = req.flash('error');
+  res.locals.old_email = req.flash('old_email')[0] || '';
   res.locals.user = sessionUser;
   res.locals.page = '';
+  res.locals.vapidPublicKey = process.env.VAPID_PUBLIC_KEY || '';
   res.locals.permissions = sessionUser ? accessService.getRolePermissions(sessionUser.role) : [];
   res.locals.modules = MODULES;
   res.locals.canAccess = (moduleName) => Boolean(sessionUser && accessService.canAccessModule(sessionUser, moduleName));
@@ -109,9 +113,46 @@ app.use('/analytics', require('./routes/analyticsRoutes'));
 app.use('/search', require('./routes/searchRoutes'));
 app.use('/admin', require('./routes/adminRoutes'));
 
+// 404 handler (must come after all routes)
+app.use((req, res) => {
+  // req.accepts('html') returns 'html' | false — false only when the client
+  // explicitly refuses HTML (e.g. Accept: application/json).
+  const wantsJson = req.originalUrl.startsWith('/api/') ||
+    req.xhr ||
+    req.accepts('html') === false;
+
+  if (wantsJson) {
+    return res.status(404).json({ message: `Route not found: ${req.method} ${req.originalUrl}` });
+  }
+  return res.status(404).render('error/404');
+});
+
+// Global error handler
+// eslint-disable-next-line no-unused-vars
+app.use((err, req, res, next) => {
+  console.error('Unhandled error:', err);
+
+  if (res.headersSent) {
+    return next(err);
+  }
+
+  const wantsJson = req.originalUrl.startsWith('/api/') ||
+    req.xhr ||
+    req.accepts('html') === false;
+
+  if (wantsJson) {
+    return res.status(err.status || 500).json({
+      message: isProduction ? 'Internal server error' : err.message
+    });
+  }
+
+  return res.status(err.status || 500).render('error/500');
+});
+
 // Socket.io Integration
 require('./socket/chatSocket')(io);
 require('./socket/sessionSocket')(io);
+require('./socket/presenceSocket')(io);
 
 const PORT = process.env.PORT || 5000;
 

@@ -9,6 +9,7 @@ router.use(authorizeModule(MODULES.ADMIN_USERS));
 router.use(authorizeRoles('admin'));
 
 router.get('/users', adminController.listUsers);
+router.post('/users/:id/reset-link', adminController.sendUserPasswordReset);
 router.put('/users/:id/role', adminController.updateUserRole);
 
 module.exports = router;

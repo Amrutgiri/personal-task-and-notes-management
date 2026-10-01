@@ -1,47 +1,45 @@
-<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
-    <div>
-        <h2 class="fw-bold mb-1">Analytics Dashboard</h2>
-        <p class="text-muted mb-0">Measure throughput, productivity mix, and team activity.</p>
+<div class="page-head">
+    <div class="page-head-text">
+        <h1>Analytics Dashboard</h1>
+        <p>Measure throughput, productivity mix, and team activity.</p>
     </div>
-    <span class="badge bg-primary-subtle text-primary px-3 py-2">Live from workspace data</span>
-</div>
-
-<div class="row g-4 mb-4">
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <small class="text-muted text-uppercase fw-bold">Users</small>
-                <h3 class="fw-bold mt-2 mb-0"><%= summary.totalUsers %></h3>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <small class="text-muted text-uppercase fw-bold">Tasks</small>
-                <h3 class="fw-bold mt-2 mb-0"><%= summary.totalTasks %></h3>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <small class="text-muted text-uppercase fw-bold">Completed</small>
-                <h3 class="fw-bold mt-2 mb-0"><%= summary.completedTasks %></h3>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <small class="text-muted text-uppercase fw-bold">Chat Activity</small>
-                <h3 class="fw-bold mt-2 mb-0"><%= summary.chatMessages %></h3>
-            </div>
-        </div>
+    <div class="page-head-actions">
+        <span class="mini-badge badge-soft-indigo">Live from workspace data</span>
     </div>
 </div>
 
-<div class="row g-4">
+<div class="kpi-grid">
+    <div class="kpi-card">
+        <span class="kpi-icon kpi-indigo"><i data-feather="users"></i></span>
+        <div class="kpi-meta">
+            <span class="kpi-value"><%= summary.totalUsers %></span>
+            <span class="kpi-label">Users</span>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <span class="kpi-icon kpi-amber"><i data-feather="clipboard"></i></span>
+        <div class="kpi-meta">
+            <span class="kpi-value"><%= summary.totalTasks %></span>
+            <span class="kpi-label">Tasks</span>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <span class="kpi-icon kpi-emerald"><i data-feather="check-circle"></i></span>
+        <div class="kpi-meta">
+            <span class="kpi-value"><%= summary.completedTasks %></span>
+            <span class="kpi-label">Completed</span>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <span class="kpi-icon kpi-rose"><i data-feather="message-square"></i></span>
+        <div class="kpi-meta">
+            <span class="kpi-value"><%= summary.chatMessages %></span>
+            <span class="kpi-label">Chat Activity</span>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
     <div class="col-lg-6">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-header border-0 bg-transparent">

@@ -35,7 +35,8 @@ const upload = multer({
   }
 });
 
-// Check file type
+// Check file type — require BOTH a known extension and a matching mimetype
+// (the old `mimetype || extname` allowed mismatched files to slip through).
 function checkFileType(file, cb) {
   // Allowed ext
   const filetypes = /jpeg|jpg|png|gif|pdf|txt|doc|docx|mp4|mov|zip|js|html|css/;
@@ -44,11 +45,11 @@ function checkFileType(file, cb) {
   // Check mime
   const mimetype = filetypes.test(file.mimetype);
 
-  if (mimetype || extname) {
+  if (mimetype && extname) {
     return cb(null, true);
-  } else {
-    cb(new Error('Error: File type not supported!'));
   }
+
+  cb(new Error('Error: File type not supported!'));
 }
 
 module.exports = upload;

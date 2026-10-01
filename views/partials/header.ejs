@@ -1,24 +1,24 @@
 <header class="top-navbar">
-    <div class="d-flex align-items-center">
-        <button class="btn btn-light me-3 d-md-none sidebar-toggle">
+    <div class="d-flex align-items-center gap-2">
+        <button class="icon-btn d-md-none sidebar-toggle" aria-label="Toggle menu">
             <i data-feather="menu"></i>
         </button>
-        <button class="btn btn-light me-3 d-none d-md-flex sidebar-toggle">
+        <button class="icon-btn d-none d-md-inline-flex sidebar-toggle" aria-label="Collapse sidebar">
             <i data-feather="sidebar"></i>
         </button>
         <% if (canAccess(modules.SEARCH)) { %>
-            <form action="/search" method="GET" class="search-bar d-none d-lg-flex align-items-center bg-light px-3 rounded-pill" style="width: 340px; height: 40px; border: 1px solid var(--border-color);">
-                <i data-feather="search" class="text-muted" style="width: 16px;"></i>
-                <input type="text" name="q" class="form-control bg-transparent border-0 shadow-none" placeholder="Search notes, tasks, chat..." style="font-size: 0.9rem;">
+            <form action="/search" method="GET" class="search-bar d-none d-lg-flex align-items-center px-3 rounded-pill">
+                <i data-feather="search" class="text-muted search-ico"></i>
+                <input type="text" name="q" class="form-control bg-transparent border-0 shadow-none" placeholder="Search notes, tasks, chat...">
             </form>
         <% } %>
     </div>
 
-    <div class="d-flex align-items-center gap-3">
+    <div class="d-flex align-items-center gap-2">
         <div class="dropdown">
-            <a href="#" class="btn btn-light rounded-circle p-0 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;" data-bs-toggle="dropdown">
+            <button class="icon-btn" data-bs-toggle="dropdown" aria-label="Notifications">
                 <i data-feather="bell"></i>
-            </a>
+            </button>
             <div class="dropdown-menu dropdown-menu-end shadow border-0 mt-2" style="width: 280px; border-radius: 12px;">
                 <h6 class="dropdown-header">Notifications</h6>
                 <div class="p-3 text-center text-muted small">No new notifications</div>
@@ -26,12 +26,12 @@
         </div>
 
         <div class="dropdown">
-            <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
-                <img src="<%= user.profileImage || '/img/default-avatar.png' %>" class="rounded-circle object-fit-cover" style="width: 40px; height: 40px;" alt="<%= user.name %>">
-                <div class="ms-2 d-none d-md-block">
-                    <div class="fw-bold small text-main"><%= user.name %></div>
-                    <div class="text-muted text-capitalize" style="font-size: 0.7rem;"><%= user.role %> · <%= user.email %></div>
-                </div>
+            <a href="#" class="user-chip dropdown-toggle text-decoration-none" data-bs-toggle="dropdown">
+                <img src="<%= user.profileImage || '/img/default-avatar.png' %>" class="rounded-circle object-fit-cover user-avatar" alt="<%= user.name %>">
+                <span class="user-chip-text d-none d-md-block">
+                    <span class="user-chip-name"><%= user.name %></span>
+                    <span class="user-chip-role"><%= user.role %> · <%= user.email %></span>
+                </span>
             </a>
             <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2" style="border-radius: 12px;">
                 <li><a class="dropdown-item py-2" href="/profile"><i data-feather="user" class="me-2" style="width: 16px;"></i> Profile</a></li>

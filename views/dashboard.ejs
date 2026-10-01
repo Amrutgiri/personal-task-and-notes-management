@@ -1,179 +1,195 @@
-<div class="row g-4 mb-4">
-    <div class="col-12">
-        <h2 class="fw-bold mb-1">Welcome back, <%= user.name %>!</h2>
-        <p class="text-muted">Here's what's happening across your notes, tasks, and team workflow today.</p>
+<div class="page-head">
+    <div class="page-head-text">
+        <h1>Welcome back, <%= user.name %></h1>
+        <p>Here’s what’s happening across your notes, tasks, and team workflow today.</p>
+    </div>
+    <div class="page-head-actions">
+        <a href="/tasks/board" class="btn btn-outline-primary btn-sm">
+            <i data-feather="columns" class="btn-ico"></i> Open Board
+        </a>
+        <a href="/tasks/add" class="btn btn-primary btn-sm">
+            <i data-feather="plus" class="btn-ico"></i> New Task
+        </a>
     </div>
 </div>
 
-<div class="row g-4 mb-5">
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center mb-3">
-                    <div class="bg-primary-subtle text-primary rounded-pill p-2 me-3"><i data-feather="file-text"></i></div>
-                    <span class="text-muted small fw-medium">Total Notes</span>
-                </div>
-                <h3 class="fw-bold mb-0"><%= stats.totalNotes %></h3>
-            </div>
+<div class="kpi-grid">
+    <div class="kpi-card">
+        <span class="kpi-icon kpi-indigo"><i data-feather="file-text"></i></span>
+        <div class="kpi-meta">
+            <span class="kpi-value"><%= stats.totalNotes %></span>
+            <span class="kpi-label">Total Notes</span>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center mb-3">
-                    <div class="bg-success-subtle text-success rounded-pill p-2 me-3"><i data-feather="check-circle"></i></div>
-                    <span class="text-muted small fw-medium">Tasks Done</span>
-                </div>
-                <h3 class="fw-bold mb-0"><%= stats.doneTasks %></h3>
-            </div>
+    <div class="kpi-card">
+        <span class="kpi-icon kpi-emerald"><i data-feather="check-circle"></i></span>
+        <div class="kpi-meta">
+            <span class="kpi-value"><%= stats.doneTasks %></span>
+            <span class="kpi-label">Tasks Done</span>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center mb-3">
-                    <div class="bg-warning-subtle text-warning rounded-pill p-2 me-3"><i data-feather="clock"></i></div>
-                    <span class="text-muted small fw-medium">Open Tasks</span>
-                </div>
-                <h3 class="fw-bold mb-0"><%= stats.totalTasks - stats.doneTasks %></h3>
-            </div>
+    <div class="kpi-card">
+        <span class="kpi-icon kpi-amber"><i data-feather="clock"></i></span>
+        <div class="kpi-meta">
+            <span class="kpi-value"><%= stats.totalTasks - stats.doneTasks %></span>
+            <span class="kpi-label">Open Tasks</span>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center mb-3">
-                    <div class="bg-danger-subtle text-danger rounded-pill p-2 me-3"><i data-feather="alert-triangle"></i></div>
-                    <span class="text-muted small fw-medium">Overdue Tasks</span>
-                </div>
-                <h3 class="fw-bold mb-0"><%= stats.overdueTasks %></h3>
-            </div>
+    <div class="kpi-card">
+        <span class="kpi-icon kpi-rose"><i data-feather="alert-triangle"></i></span>
+        <div class="kpi-meta">
+            <span class="kpi-value"><%= stats.overdueTasks %></span>
+            <span class="kpi-label">Overdue Tasks</span>
         </div>
     </div>
 </div>
 
-<div class="row g-4">
-    <div class="col-lg-7">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-header border-0 bg-transparent d-flex justify-content-between align-items-center pt-4 px-4">
-                <h5 class="fw-bold mb-0">Recent Tasks</h5>
-                <a href="/tasks/board" class="btn btn-primary btn-sm rounded-pill">
-                    <i data-feather="columns" style="width: 14px;"></i> Open Board
-                </a>
+<div class="dash-grid">
+    <section class="dash-card">
+        <header class="dash-card-head">
+            <div>
+                <h2>Recent Tasks</h2>
+                <span class="dash-card-sub">Latest activity across your tasks</span>
             </div>
-            <div class="card-body p-4">
-                <% if(recentTasks && recentTasks.length > 0) { %>
-                    <div class="list-group list-group-flush gap-3">
-                        <% recentTasks.forEach(task => { %>
-                            <a href="/tasks/edit/<%= task._id %>" class="list-group-item list-group-item-action border rounded-4 p-3 shadow-none hover-shadow">
-                                <div class="d-flex justify-content-between align-items-start mb-2">
-                                    <div class="d-flex align-items-center">
-                                        <h6 class="fw-bold text-primary mb-0 me-2"><%= task.title %></h6>
-                                        <small class="text-muted" style="font-size: 0.7rem;"><%= task.deadline ? new Date(task.deadline).toLocaleDateString() : 'No deadline' %></small>
-                                    </div>
-                                    <% 
-                                        let badgeClass = 'bg-secondary-subtle text-secondary';
-                                        if(task.status === 'Todo') badgeClass = 'bg-primary-subtle text-primary';
-                                        if(task.status === 'In Progress') badgeClass = 'bg-warning-subtle text-warning';
-                                        if(task.status === 'Done') badgeClass = 'bg-success-subtle text-success';
-                                    %>
-                                    <span class="badge rounded-pill <%= badgeClass %>" style="font-size: 0.7rem;"><%= task.status %></span>
-                                </div>
-                                <p class="text-muted small mb-0">Assigned to <%= task.assignedTo ? task.assignedTo.name : 'Unassigned' %></p>
-                            </a>
-                        <% }) %>
-                    </div>
-                <% } else { %>
-                    <div class="text-center py-5">
-                        <div class="bg-light rounded-circle d-inline-flex p-4 mb-3"><i data-feather="clipboard" class="text-muted" style="width: 32px; height: 32px;"></i></div>
-                        <p class="text-muted">No tasks created yet.</p>
-                        <a href="/tasks/add" class="btn btn-outline-primary btn-sm">Create Task</a>
-                    </div>
-                <% } %>
-            </div>
+            <a href="/tasks/board" class="btn btn-outline-primary btn-xs">Open Board</a>
+        </header>
+        <div class="dash-card-body">
+            <% if(recentTasks && recentTasks.length > 0) { %>
+                <div class="mini-list">
+                    <% recentTasks.forEach(task => { %>
+                        <a href="/tasks/edit/<%= task._id %>" class="mini-row">
+                            <%
+                                let dotClass = 'dot-secondary';
+                                let badgeClass = 'badge-soft badge-soft-gray';
+                                if(task.status === 'Todo') { dotClass = 'dot-indigo'; badgeClass = 'badge-soft badge-soft-indigo'; }
+                                if(task.status === 'In Progress') { dotClass = 'dot-amber'; badgeClass = 'badge-soft badge-soft-amber'; }
+                                if(task.status === 'Done') { dotClass = 'dot-emerald'; badgeClass = 'badge-soft badge-soft-emerald'; }
+                            %>
+                            <span class="mini-dot <%= dotClass %>"></span>
+                            <span class="mini-body">
+                                <span class="mini-title"><%= task.title %></span>
+                                <span class="mini-sub">
+                                    <i data-feather="calendar" class="mini-ico"></i>
+                                    <%= task.deadline ? new Date(task.deadline).toLocaleDateString() : 'No deadline' %>
+                                    <span class="mini-sep">·</span>
+                                    Assigned to <%= task.assignedTo ? task.assignedTo.name : 'Unassigned' %>
+                                </span>
+                            </span>
+                            <span class="mini-badge <%= badgeClass %>"><%= task.status %></span>
+                        </a>
+                    <% }) %>
+                </div>
+            <% } else { %>
+                <div class="dash-empty">
+                    <span class="dash-empty-icon"><i data-feather="clipboard"></i></span>
+                    <p>No tasks created yet.</p>
+                    <a href="/tasks/add" class="btn btn-primary btn-xs">Create Task</a>
+                </div>
+            <% } %>
         </div>
-    </div>
+    </section>
 
-    <div class="col-lg-5">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-header border-0 bg-transparent d-flex justify-content-between align-items-center pt-4 px-4">
-                <h5 class="fw-bold mb-0">Recent Notes</h5>
-                <a href="/notes" class="btn btn-light btn-sm rounded-pill">View All</a>
+    <section class="dash-card">
+        <header class="dash-card-head">
+            <div>
+                <h2>Recent Notes</h2>
+                <span class="dash-card-sub">Last updated notes</span>
             </div>
-            <div class="card-body p-4">
-                <% if(recentNotes.length > 0) { %>
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <tbody>
-                                <% recentNotes.forEach(note => { %>
-                                    <tr>
-                                        <td>
-                                            <div class="fw-bold small text-main text-truncate" style="max-width: 180px;"><%= note.title %></div>
-                                            <div class="text-muted" style="font-size: 0.7rem;"><%= new Date(note.updatedAt).toLocaleDateString() %></div>
-                                        </td>
-                                        <td class="text-end">
-                                            <% 
-                                                let pBadge = 'bg-success-subtle text-success';
-                                                if(note.priority === 'High') pBadge = 'bg-danger-subtle text-danger';
-                                                if(note.priority === 'Medium') pBadge = 'bg-warning-subtle text-warning';
-                                            %>
-                                            <span class="badge rounded-pill <%= pBadge %>" style="font-size: 0.65rem;"><%= note.priority %></span>
-                                        </td>
-                                        <td class="text-end">
-                                            <a href="/notes/<%= note._id %>" class="btn btn-link p-0 text-muted"><i data-feather="chevron-right" style="width: 16px;"></i></a>
-                                        </td>
-                                    </tr>
-                                <% }) %>
-                            </tbody>
-                        </table>
-                    </div>
-                <% } else { %>
-                    <div class="text-center py-5"><p class="text-muted">No recent notes.</p></div>
-                <% } %>
-            </div>
+            <a href="/notes" class="btn btn-outline-primary btn-xs">View All</a>
+        </header>
+        <div class="dash-card-body">
+            <% if(recentNotes.length > 0) { %>
+                <div class="mini-list">
+                    <% recentNotes.forEach(note => { %>
+                        <a href="/notes/<%= note._id %>" class="mini-row">
+                            <%
+                                let pBadge = 'badge-soft badge-soft-emerald';
+                                if(note.priority === 'High') pBadge = 'badge-soft badge-soft-rose';
+                                if(note.priority === 'Medium') pBadge = 'badge-soft badge-soft-amber';
+                            %>
+                            <span class="mini-body">
+                                <span class="mini-title"><%= note.title %></span>
+                                <span class="mini-sub">
+                                    <i data-feather="clock" class="mini-ico"></i>
+                                    <%= new Date(note.updatedAt).toLocaleDateString() %>
+                                </span>
+                            </span>
+                            <span class="mini-badge <%= pBadge %>"><%= note.priority %></span>
+                            <i data-feather="chevron-right" class="mini-arrow"></i>
+                        </a>
+                    <% }) %>
+                </div>
+            <% } else { %>
+                <div class="dash-empty">
+                    <span class="dash-empty-icon"><i data-feather="file-text"></i></span>
+                    <p>No recent notes.</p>
+                </div>
+            <% } %>
         </div>
-    </div>
+    </section>
 </div>
 
-<div class="row g-4 mt-1">
-    <div class="col-lg-4">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header border-0 bg-transparent"><h5 class="fw-bold mb-0">Workflow Snapshot</h5></div>
-            <div class="card-body"><canvas data-chart="bar" data-chart-labels='<%- JSON.stringify(chartTasksByStatus.map(item => item._id)) %>' data-chart-values='<%- JSON.stringify(chartTasksByStatus.map(item => item.total)) %>'></canvas></div>
-        </div>
-    </div>
-    <div class="col-lg-4">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header border-0 bg-transparent"><h5 class="fw-bold mb-0">Priority Mix</h5></div>
-            <div class="card-body"><canvas data-chart="doughnut" data-chart-labels='<%- JSON.stringify(productivityByPriority.map(item => item._id || "Unspecified")) %>' data-chart-values='<%- JSON.stringify(productivityByPriority.map(item => item.total)) %>'></canvas></div>
-        </div>
-    </div>
-    <div class="col-lg-4">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-header border-0 bg-transparent"><h5 class="fw-bold mb-0">Work Log Snapshot</h5></div>
-            <div class="card-body">
-                <% if(recentWorkLogs && recentWorkLogs.length > 0) { %>
-                    <div class="list-group list-group-flush gap-3">
-                        <% recentWorkLogs.forEach(log => { %>
-                            <a href="/daily-notes/<%= log._id %>" class="list-group-item list-group-item-action border rounded-4 p-3 shadow-none hover-shadow">
-                                <div class="d-flex justify-content-between align-items-start mb-2">
-                                    <div>
-                                        <h6 class="fw-bold mb-1"><%= log.project_name %></h6>
-                                        <small class="text-muted"><%= log.task_title %></small>
-                                    </div>
-                                    <span class="badge bg-light text-dark border"><%= new Date(log.date).toLocaleDateString() %></span>
-                                </div>
-                            </a>
-                        <% }) %>
-                    </div>
-                <% } else { %>
-                    <p class="text-muted mb-0">No daily work logs available.</p>
-                <% } %>
+<div class="dash-grid dash-grid-3">
+    <section class="dash-card">
+        <header class="dash-card-head">
+            <div>
+                <h2>Workflow Snapshot</h2>
+                <span class="dash-card-sub">Tasks grouped by status</span>
             </div>
+        </header>
+        <div class="dash-card-body">
+            <canvas data-chart="bar" data-chart-labels='<%- JSON.stringify(chartTasksByStatus.map(item => item._id)) %>' data-chart-values='<%- JSON.stringify(chartTasksByStatus.map(item => item.total)) %>'></canvas>
         </div>
-    </div>
+    </section>
+
+    <section class="dash-card">
+        <header class="dash-card-head">
+            <div>
+                <h2>Priority Mix</h2>
+                <span class="dash-card-sub">Distribution by priority</span>
+            </div>
+        </header>
+        <div class="dash-card-body">
+            <canvas data-chart="doughnut" data-chart-labels='<%- JSON.stringify(productivityByPriority.map(item => item._id || "Unspecified")) %>' data-chart-values='<%- JSON.stringify(productivityByPriority.map(item => item.total)) %>'></canvas>
+        </div>
+    </section>
+
+    <section class="dash-card">
+        <header class="dash-card-head">
+            <div>
+                <h2>Work Log Snapshot</h2>
+                <span class="dash-card-sub">Latest daily work logs</span>
+            </div>
+        </header>
+        <div class="dash-card-body">
+            <% if(recentWorkLogs && recentWorkLogs.length > 0) { %>
+                <div class="mini-list">
+                    <% recentWorkLogs.forEach(log => { %>
+                        <a href="/daily-notes/<%= log._id %>" class="mini-row">
+                            <span class="mini-dot dot-sky"></span>
+                            <span class="mini-body">
+                                <span class="mini-title"><%= log.project_name %></span>
+                                <span class="mini-sub">
+                                    <i data-feather="calendar" class="mini-ico"></i>
+                                    <%= new Date(log.date).toLocaleDateString() %>
+                                    <span class="mini-sep">·</span>
+                                    <%= log.task_title %>
+                                </span>
+                            </span>
+                            <i data-feather="chevron-right" class="mini-arrow"></i>
+                        </a>
+                    <% }) %>
+                </div>
+            <% } else { %>
+                <div class="dash-empty">
+                    <span class="dash-empty-icon"><i data-feather="calendar"></i></span>
+                    <p>No daily work logs available.</p>
+                </div>
+            <% } %>
+        </div>
+    </section>
 </div>
 
-<a href="/tasks/add" class="fab">
+<a href="/tasks/add" class="fab" title="New task">
     <i data-feather="plus"></i>
 </a>

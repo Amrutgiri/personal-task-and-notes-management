@@ -1,19 +1,22 @@
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="fw-bold mb-0">Daily Work Log</h2>
-    <div class="d-flex gap-2">
-        <button id="sync-settings-btn" class="btn btn-outline-secondary rounded-pill shadow-sm" title="Google Sheets Settings">
+<div class="page-head">
+    <div class="page-head-text">
+        <h1>Daily Work Log</h1>
+        <p>Record, sync and review day-to-day work entries.</p>
+    </div>
+    <div class="page-head-actions">
+        <button id="sync-settings-btn" class="btn btn-outline-secondary btn-sm rounded-pill" title="Google Sheets Settings">
             <i data-feather="settings"></i>
         </button>
-        <button id="sync-google-sheets" class="btn btn-outline-success rounded-pill shadow-sm" title="Sync New Entries to Sheets">
+        <button id="sync-google-sheets" class="btn btn-outline-success btn-sm rounded-pill" title="Sync New Entries to Sheets">
             <i data-feather="refresh-cw"></i> <span class="d-none d-md-inline">Sync</span>
         </button>
-        <button id="import-google-sheets" class="btn btn-outline-primary rounded-pill shadow-sm" title="Import from Sheets to DB">
+        <button id="import-google-sheets" class="btn btn-outline-primary btn-sm rounded-pill" title="Import from Sheets to DB">
             <i data-feather="download-cloud"></i> <span class="d-none d-md-inline">Import</span>
         </button>
-        <button type="button" class="btn btn-outline-dark rounded-pill shadow-sm" data-bs-toggle="modal" data-bs-target="#dailyNotesExportModal" title="Export filtered logs">
+        <button type="button" class="btn btn-outline-dark btn-sm rounded-pill" data-bs-toggle="modal" data-bs-target="#dailyNotesExportModal" title="Export filtered logs">
             <i data-feather="file-down"></i> <span class="d-none d-md-inline">Export</span>
         </button>
-        <a href="/daily-notes/add" class="btn btn-primary rounded-pill shadow-sm">
+        <a href="/daily-notes/add" class="btn btn-primary btn-sm rounded-pill">
             <i data-feather="plus"></i> <span class="d-none d-md-inline">New Entry</span>
         </a>
     </div>
@@ -73,8 +76,8 @@
 
 <!-- Filters -->
 <div class="card border-0 shadow-sm mb-4">
-    <div class="card-body p-3">
-        <form action="/daily-notes" method="GET" class="row g-3 align-items-end">
+    <div class="card-body">
+        <form action="/daily-notes" method="GET" class="row g-2 align-items-end">
             <div class="col-lg-3">
                 <label class="form-label small fw-bold text-uppercase text-muted">Search</label>
                 <div class="input-group bg-light rounded-pill px-2" style="border: 1px solid var(--border-color);">
@@ -122,11 +125,11 @@
         <table class="table table-hover align-middle mb-0">
             <thead class="bg-light">
                 <tr>
-                    <th class="ps-4 py-3 text-muted small fw-bold text-uppercase">Date</th>
-                    <th class="py-3 text-muted small fw-bold text-uppercase">Project</th>
-                    <th class="py-3 text-muted small fw-bold text-uppercase">Task Title</th>
-                    <th class="py-3 text-muted small fw-bold text-uppercase">Status</th>
-                    <th class="pe-4 py-3 text-end text-muted small fw-bold text-uppercase">Actions</th>
+                    <th class="ps-4 py-2 text-muted small fw-bold text-uppercase">Date</th>
+                    <th class="py-2 text-muted small fw-bold text-uppercase">Project</th>
+                    <th class="py-2 text-muted small fw-bold text-uppercase">Task Title</th>
+                    <th class="py-2 text-muted small fw-bold text-uppercase">Status</th>
+                    <th class="pe-4 py-2 text-end text-muted small fw-bold text-uppercase">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -175,19 +178,64 @@
 
 <!-- Pagination -->
 <% if (totalPages > 1) { %>
-<nav class="mt-4">
-  <ul class="pagination justify-content-center border-0">
-    <li class="page-item <%= page === 1 ? 'disabled' : '' %>">
-      <a class="page-link border-0 rounded-pill mx-1 bg-light text-muted" href="?page=<%= page - 1 %>&filter=<%= filter %>&search=<%= search %>&status=<%= selectedStatus %>&startDate=<%= startDate %>&endDate=<%= endDate %>">Previous</a>
-    </li>
-    <% for(let i = 1; i <= totalPages; i++) { %>
-      <li class="page-item <%= page === i ? 'active' : '' %>">
-        <a class="page-link border-0 rounded-pill mx-1 <%= page === i ? 'bg-primary text-white shadow' : 'bg-light text-muted' %>" href="?page=<%= i %>&filter=<%= filter %>&search=<%= search %>&status=<%= selectedStatus %>&startDate=<%= startDate %>&endDate=<%= endDate %>"><%= i %></a>
-      </li>
-    <% } %>
-    <li class="page-item <%= page === totalPages ? 'disabled' : '' %>">
-      <a class="page-link border-0 rounded-pill mx-1 bg-light text-muted" href="?page=<%= page + 1 %>&filter=<%= filter %>&search=<%= search %>&status=<%= selectedStatus %>&startDate=<%= startDate %>&endDate=<%= endDate %>">Next</a>
-    </li>
-  </ul>
-</nav>
+<%
+    const cp = typeof currentPage !== 'undefined' ? currentPage : 1;
+    const tp = totalPages;
+    const pageSize = (typeof locals !== 'undefined' && locals.perPage) ? locals.perPage : 10;
+    const qsBase = '?filter=' + encodeURIComponent(filter || '')
+        + '&search=' + encodeURIComponent(search || '')
+        + '&status=' + encodeURIComponent(selectedStatus || '')
+        + '&startDate=' + encodeURIComponent(startDate || '')
+        + '&endDate=' + encodeURIComponent(endDate || '');
+    const urlFor = (n) => qsBase + '&page=' + n;
+
+    const items = [];
+    if (tp <= 9) {
+        for (let i = 1; i <= tp; i++) items.push(i);
+    } else {
+        const start = Math.max(2, cp - 2);
+        const end = Math.min(tp - 1, cp + 2);
+        items.push(1);
+        if (start > 2) items.push('...');
+        for (let i = start; i <= end; i++) items.push(i);
+        if (end < tp - 1) items.push('...');
+        items.push(tp);
+    }
+
+    const from = (cp - 1) * pageSize + 1;
+    const to = Math.min(cp * pageSize, totalNotes);
+%>
+<div class="table-foot">
+    <span class="table-foot-info">
+        Showing <strong><%= from %>&ndash;<%= to %></strong> of <strong><%= totalNotes %></strong> entries
+    </span>
+
+    <nav aria-label="Daily work log pages">
+        <ul class="pagination pagination-sm mb-0">
+            <li class="page-item <%= cp <= 1 ? 'disabled' : '' %>">
+                <a class="page-link" href="<%= cp <= 1 ? '#' : urlFor(cp - 1) %>" aria-label="Previous" <%= cp <= 1 ? 'tabindex="-1" aria-disabled="true"' : '' %>>
+                    <i data-feather="chevron-left"></i><span class="ms-1 d-none d-sm-inline">Prev</span>
+                </a>
+            </li>
+
+            <% items.forEach(item => { %>
+                <% if (item === '...') { %>
+                    <li class="page-item page-ellipsis disabled">
+                        <span class="page-link">&hellip;</span>
+                    </li>
+                <% } else { %>
+                    <li class="page-item <%= item === cp ? 'active' : '' %>">
+                        <a class="page-link" href="<%= urlFor(item) %>" <%= item === cp ? 'aria-current="page"' : '' %>><%= item %></a>
+                    </li>
+                <% } %>
+            <% }) %>
+
+            <li class="page-item <%= cp >= tp ? 'disabled' : '' %>">
+                <a class="page-link" href="<%= cp >= tp ? '#' : urlFor(cp + 1) %>" aria-label="Next" <%= cp >= tp ? 'tabindex="-1" aria-disabled="true"' : '' %>>
+                    <span class="me-1 d-none d-sm-inline">Next</span><i data-feather="chevron-right"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</div>
 <% } %>

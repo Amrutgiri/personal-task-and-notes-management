@@ -23,7 +23,7 @@
   <!-- Custom Style -->
   <link rel="stylesheet" href="/css/style.css">
 </head>
-<body>
+<body class="<%= user ? '' : 'auth-body' %>" data-vapid-public-key="<%= typeof vapidPublicKey != 'undefined' ? vapidPublicKey : '' %>">
 
   <% if (user) { %>
     <!-- Sidebar -->
@@ -35,15 +35,14 @@
       <%- include('../partials/header') %>
 
       <!-- Content Area -->
-      <main class="container-fluid px-4 py-4 fade-in">
+      <main class="container-fluid px-4 py-3 fade-in">
         <%- include('../partials/toast') %>
         <%- body %>
       </main>
     </div>
   <% } else { %>
     <!-- Auth Pages Layout -->
-    <main class="container-fluid fade-in">
-      <%- include('../partials/toast') %>
+    <main class="auth-shell fade-in">
       <%- body %>
     </main>
   <% } %>

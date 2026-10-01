@@ -8,7 +8,7 @@
     </a>
 
     <div class="nav-section flex-grow-1">
-        <small class="text-muted text-uppercase fw-bold mb-3 d-block nav-label" style="font-size: 0.65rem; letter-spacing: 1px;">Menu</small>
+        <small class="text-muted text-uppercase fw-bold mb-2 d-block nav-label" style="font-size: 0.62rem; letter-spacing: 1px;">Menu</small>
         <ul class="nav flex-column">
             <% if (canAccess(modules.DASHBOARD)) { %>
                 <li class="nav-item"><a class="nav-link <%= activePage === 'dashboard' ? 'active' : '' %>" href="/dashboard"><i data-feather="grid"></i><span class="nav-label">Dashboard</span></a></li>
@@ -43,7 +43,7 @@
             <% } %>
         </ul>
 
-        <small class="text-muted text-uppercase fw-bold mt-4 mb-3 d-block nav-label" style="font-size: 0.65rem; letter-spacing: 1px;">Storage</small>
+        <small class="text-muted text-uppercase fw-bold mt-3 mb-2 d-block nav-label" style="font-size: 0.62rem; letter-spacing: 1px;">Storage</small>
         <ul class="nav flex-column">
             <% if (canAccess(modules.NOTES)) { %>
                 <li class="nav-item"><a class="nav-link" href="/notes/trash/view"><i data-feather="trash-2"></i><span class="nav-label">Trash</span></a></li>
@@ -51,7 +51,7 @@
         </ul>
     </div>
 
-    <div class="sidebar-footer mt-auto pt-4 border-top">
+    <div class="sidebar-footer mt-auto pt-3 border-top">
         <a class="nav-link text-danger" href="/auth/logout">
             <i data-feather="log-out"></i>
             <span class="nav-label">Logout</span>

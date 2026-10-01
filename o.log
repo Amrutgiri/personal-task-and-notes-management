@@ -1,0 +1,22 @@
+[dotenv@17.3.1] injecting env (14) from .env -- tip: ⚡️ secrets for agents: https://dotenvx.com/as2
+[dotenv@17.3.1] injecting env (0) from .env -- tip: ⚙️  suppress all logs with { quiet: true }
+Server running on port 5056
+MongoDB Connected: ac-hehqwlu-shard-00-01.akjpmt9.mongodb.net
+New connection: fAIoTreLR_-TWazDAAAB
+User disconnected: fAIoTreLR_-TWazDAAAB
+New connection: Dd3vtapcqwVpPc6TAAAD
+New connection: 9Im6uJtdEMYY7EdTAAAF
+New connection: uC4tA8oSJ3G9z8fEAAAH
+New connection: 5CVKNbBw5SjpYRMTAAAJ
+New connection: pPBNEFavbo8xXm0nAAAL
+New connection: FnQEO-9tdsRwReVNAAAN
+New connection: dbvcZB0n0jbQ9woMAAAP
+User disconnected: Dd3vtapcqwVpPc6TAAAD
+New connection: 9MNlykrPE_tC71gIAAAR
+User disconnected: 9Im6uJtdEMYY7EdTAAAF
+New connection: uidXMjA1oworR1lwAAAT
+New connection: 5AH-DGWlMDQSstwiAAAV
+User disconnected: uC4tA8oSJ3G9z8fEAAAH
+New connection: GVjIZvMXOz2w2Do6AAAX
+User disconnected: 5CVKNbBw5SjpYRMTAAAJ
+New connection: QMvlHYVkWCRec5zVAAAZ
